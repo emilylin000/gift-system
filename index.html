@@ -203,7 +203,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <option value="">全部類型</option>
       <option value="in">贈品購入</option>
       <option value="event">活動使用</option>
-      <option value="vip">主管公關使用</option>
+      <option value="vip">公關使用</option>
     </select>
     <select id="logSort" onchange="renderLog()">
       <option value="newest">最新優先</option>
@@ -310,12 +310,12 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">使用類型</div>
       <div class="use-type-toggle">
         <button class="use-type-btn active" id="btnEvent" onclick="switchUseType('event')">活動使用</button>
-        <button class="use-type-btn" id="btnVip" onclick="switchUseType('vip')">主管公關使用</button>
+        <button class="use-type-btn" id="btnVip" onclick="switchUseType('vip')">公關使用</button>
       </div>
       <div id="fieldsEvent">
         <div class="form-row">
-          <label>報告書發文字號</label>
-          <input id="lDocNo" type="text" placeholder="例：鎔行字第1140001號"/>
+          <label>發文字號</label>
+          <input id="lDocNo" type="text" placeholder="例：LD1234567789"/>
         </div>
         <div class="form-row">
           <label>活動名稱</label>
@@ -324,7 +324,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
       </div>
       <div id="fieldsVip" style="display:none">
         <div class="form-row two">
-          <div><label>主管姓名</label><input id="lManager" type="text" placeholder="例：王總經理"/></div>
+          <div><label>主管職稱</label><input id="lManager" type="text" placeholder="例：總經理"/></div>
           <div><label>客戶姓名</label><input id="lClient" type="text" placeholder="例：陳先生"/></div>
         </div>
       </div>
@@ -883,4 +883,64 @@ async function runBatchImport(){
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
     buildLocFilter();renderInventory();
     importParsedRows=[];
-    document.getElementById('importPreviewWrap').sty
+    document.getElementById('importPreviewWrap').style.display='none';
+    document.getElementById('importActions').style.display='none';
+    document.getElementById('importDropLabel').textContent='點擊或拖曳上傳 Excel / CSV 檔案';
+    document.getElementById('importFileInput').value='';
+  }catch(e){
+    ilogLine('✗ 發生錯誤：'+e.message,'ierr');
+  }
+  document.getElementById('importConfirmBtn').disabled=false;
+}
+
+/* EXPORT EXCEL */
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+
+  // Sheet 1: 庫存總覽
+  const invRows=[['年份','來源','品項名稱','類別','單價（NT$）','庫存地點','數量','庫存總值（NT$）']];
+  items.forEach(i=>{
+    const locs=(i.locations||[]).filter(l=>l.qty>0);
+    if(locs.length===0){
+      invRows.push([i.year||'',i.src,i.name,i.cat,i.price,'',0,0]);
+    } else {
+      locs.forEach((l,idx)=>{
+        invRows.push(idx===0?[i.year||'',i.src,i.name,i.cat,i.price,l.name,l.qty,Math.round(i.price*l.qty)]:['','','','','',l.name,l.qty,Math.round(i.price*l.qty)]);
+      });
+    }
+  });
+  const ws1=XLSX.utils.aoa_to_sheet(invRows);
+  ws1['!cols']=[{wch:8},{wch:16},{wch:24},{wch:10},{wch:12},{wch:12},{wch:8},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws1,'庫存總覽');
+
+  // Sheet 2: 使用記錄
+  const logRows=[['日期','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','主管','客戶','備註']];
+  [...logs].sort((a,b)=>a.id-b.id).forEach(l=>{
+    const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'主管公關';
+    logRows.push([
+      String(l.date||'').slice(0,10),
+      type,
+      l.name,
+      l.locName||'',
+      l.type==='in'?l.qty:-l.qty,
+      l.price,
+      Math.round(l.price*l.qty),
+      l.docNo||'',
+      l.eventName||'',
+      l.manager||'',
+      l.client||'',
+      l.note||''
+    ]);
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(logRows);
+  ws2['!cols']=[{wch:12},{wch:10},{wch:24},{wch:12},{wch:6},{wch:12},{wch:12},{wch:18},{wch:20},{wch:10},{wch:10},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws2,'使用記錄');
+
+  const date=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,`鎔德贈品稽核表_${date}.xlsx`);
+}
+loadFromSheets();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</body>
+</html>
