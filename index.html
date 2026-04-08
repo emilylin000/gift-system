@@ -57,6 +57,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500;white-space:nowrap}
 .badge-fin{background:var(--blue-bg);color:var(--blue-text)}
 .badge-gen{background:var(--green-bg);color:var(--green-text)}
+.qty-zero{color:var(--text3)!important;font-weight:400!important}
+.row-zero{opacity:.45}
 .qty-low{color:#A32D2D;font-weight:500}
 .qty-mid{color:#854F0B;font-weight:500}
 .qty-ok{color:#27500A;font-weight:500}
@@ -136,7 +138,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   <div class="nav-brand">鎔德行銷 · 贈品管理</div>
   <div class="nav-tabs">
     <div class="nav-tab active" data-page="inventory">庫存總覽</div>
-    <div class="nav-tab" data-page="log">贈品記錄</div>
+    <div class="nav-tab" data-page="log">使用記錄</div>
     <div class="nav-tab" data-page="import">批次匯入</div>
   </div>
   <div class="nav-right">
@@ -169,6 +171,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <option value="desc">降冪</option>
       <option value="asc">升冪</option>
     </select>
+    <button class="btn" id="toggleZeroBtn" onclick="toggleHideZero()">隱藏庫存 0</button>
+    <button class="btn" onclick="exportExcel()">匯出稽核表</button>
     <button class="btn btn-primary" onclick="openItemModal()">＋ 新增品項</button>
   </div>
   <div class="summary-line" id="summaryLine"></div>
@@ -212,8 +216,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th>日期</th><th>類型</th><th>年份</th><th>來源</th><th>品項名稱</th>
-        <th>地點</th><th>數量</th><th>單價</th><th>金額</th><th>詳細 / 備註</th><th>操作</th>
+        <th>日期</th><th>類型</th><th>品項名稱</th><th>地點</th><th>數量</th><th>單價</th><th>金額</th><th>詳細 / 備註</th><th>操作</th>
       </tr></thead>
       <tbody id="logBody"></tbody>
     </table>
@@ -402,7 +405,7 @@ const DEFAULT_ITEMS=[
 ];
 
 let items=[],logs=[],nextItemId=30,nextLogId=1;
-let editingItemId=null,currentLogType='in',currentUseType='event',pendingPhoto='',isSyncing=false,editingLocs=[];
+let editingItemId=null,currentLogType='in',currentUseType='event',pendingPhoto='',isSyncing=false,editingLocs=[],hideZero=false;
 
 function totalQty(i){return(i.locations||[]).reduce((s,l)=>s+Number(l.qty||0),0);}
 function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
@@ -527,7 +530,7 @@ function getFiltered(){
   const sd=document.getElementById('sortDir').value;
   let data=items.filter(i=>{
     const txt=(String(i.year||'')+i.src+i.name).toLowerCase();
-    return txt.includes(q)&&(!cat||i.cat===cat)&&(!loc||(i.locations||[]).some(l=>l.name===loc&&l.qty>0));
+    return txt.includes(q)&&(!cat||i.cat===cat)&&(!loc||(i.locations||[]).some(l=>l.name===loc&&l.qty>0))&&(!hideZero||totalQty(i)>0);
   });
   data.sort((a,b)=>{
     if(sf==='name')return sd==='asc'?(a.src+a.name).localeCompare(b.src+b.name,'zh-Hant'):(b.src+b.name).localeCompare(a.src+a.name,'zh-Hant');
@@ -556,10 +559,11 @@ function renderInventory(){
   if(!data.length){tbody.innerHTML=`<tr class="empty-row"><td colspan="10">找不到符合的品項</td></tr>`;return;}
   tbody.innerHTML=data.map(i=>{
     const tq=totalQty(i);
-    const qc=tq<=10?'qty-low':tq<=30?'qty-mid':'qty-ok';
+    const qc=tq===0?'qty-zero':tq<=10?'qty-low':tq<=30?'qty-mid':'qty-ok';
+    const rowCls=tq===0?' class="row-zero"':'';
     const photo=i.photo?`<img class="photo-thumb" src="${i.photo}" alt="" onclick="openLightbox(${i.id})">`:`<div class="photo-placeholder" onclick="quickPhoto(${i.id})">+</div>`;
     const locHtml=(i.locations||[]).filter(l=>l.qty>0).map(l=>`<div class="loc-pill"><span class="loc-name">${esc(l.name)}</span><span class="loc-qty">${l.qty}</span></div>`).join('')||`<span style="color:var(--text3);font-size:12px">—</span>`;
-    return`<tr>
+    return`<tr${rowCls}>
       <td>${photo}</td>
       <td style="color:var(--text2);font-size:12px">${esc(i.year||'')}</td>
       <td style="color:var(--text2);font-size:12px;max-width:130px;word-break:break-all">${esc(i.src)}</td>
@@ -650,6 +654,14 @@ function saveItem(){
   }
   buildLocFilter();saveItems();closeModal('itemModal');renderInventory();
 }
+function toggleHideZero(){
+  hideZero=!hideZero;
+  const btn=document.getElementById('toggleZeroBtn');
+  btn.style.background=hideZero?'var(--text)':'var(--bg)';
+  btn.style.color=hideZero?'var(--bg)':'var(--text)';
+  btn.textContent=hideZero?'顯示庫存 0':'隱藏庫存 0';
+  renderInventory();
+}
 function deleteItem(id){
   if(!confirm('確定要刪除此品項？'))return;
   items=items.filter(i=>i.id!==id);buildLocFilter();saveItems();renderInventory();
@@ -739,17 +751,15 @@ function renderLog(){
   const to=logs.filter(l=>l.type==='out').reduce((s,l)=>s+l.qty,0);
   document.getElementById('logSummaryLine').innerHTML=`共 <strong>${logs.length}</strong> 筆 · 購入 <strong>${ti}</strong> 件 · 使用 <strong>${to}</strong> 件`;
   const tbody=document.getElementById('logBody');
-  if(!data.length){tbody.innerHTML=`<tr class="empty-row"><td colspan="11">尚無記錄</td></tr>`;return;}
+  if(!data.length){tbody.innerHTML=`<tr class="empty-row"><td colspan="9">尚無記錄</td></tr>`;return;}
   tbody.innerHTML=data.map(l=>{
     let badge,detail='';
     if(l.type==='in'){badge=`<span class="badge log-badge-in">購入</span>`;}
     else if(l.useType==='event'){badge=`<span class="badge log-badge-event">活動使用</span>`;if(l.docNo)detail+=`字號：${esc(l.docNo)}<br>`;if(l.eventName)detail+=`活動：${esc(l.eventName)}`;}
     else{badge=`<span class="badge log-badge-vip">主管公關</span>`;if(l.manager)detail+=`主管：${esc(l.manager)}<br>`;if(l.client)detail+=`客戶：${esc(l.client)}`;}
     return`<tr>
-      <td style="white-space:nowrap">${l.date}</td>
+      <td style="white-space:nowrap">${String(l.date||'').slice(0,10)}</td>
       <td>${badge}</td>
-      <td style="color:var(--text2);font-size:12px">${esc(l.year||'')}</td>
-      <td style="color:var(--text2);font-size:12px">${esc(l.src||'')}</td>
       <td style="font-weight:500">${esc(l.name)}</td>
       <td style="font-size:12px;color:var(--text2)">${esc(l.locName||'')}</td>
       <td>${l.type==='in'?'+':'−'}${l.qty}</td>
@@ -873,17 +883,4 @@ async function runBatchImport(){
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
     buildLocFilter();renderInventory();
     importParsedRows=[];
-    document.getElementById('importPreviewWrap').style.display='none';
-    document.getElementById('importActions').style.display='none';
-    document.getElementById('importDropLabel').textContent='點擊或拖曳上傳 Excel / CSV 檔案';
-    document.getElementById('importFileInput').value='';
-  }catch(e){
-    ilogLine('✗ 發生錯誤：'+e.message,'ierr');
-  }
-  document.getElementById('importConfirmBtn').disabled=false;
-}
-loadFromSheets();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-</body>
-</html>
+    document.getElementById('importPreviewWrap').sty
