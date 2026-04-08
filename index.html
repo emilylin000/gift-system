@@ -324,7 +324,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
       </div>
       <div id="fieldsVip" style="display:none">
         <div class="form-row two">
-          <div><label>單位or主管</label><input id="lManager" type="text" placeholder="例：總管理處or總經理"/></div>
+          <div><label>單位or主管</label><input id="lManager" type="text" placeholder="例：總經理"/></div>
           <div><label>客戶姓名</label><input id="lClient" type="text" placeholder="例：陳先生"/></div>
         </div>
       </div>
@@ -755,8 +755,8 @@ function renderLog(){
   tbody.innerHTML=data.map(l=>{
     let badge,detail='';
     if(l.type==='in'){badge=`<span class="badge log-badge-in">購入</span>`;}
-    else if(l.useType==='event'){badge=`<span class="badge log-badge-event">活動使用</span>`;if(l.docNo)detail+=`字號：${esc(l.docNo)}<br>`;if(l.eventName)detail+=`活動：${esc(l.eventName)}`;}
-    else{badge=`<span class="badge log-badge-vip">主管公關</span>`;if(l.manager)detail+=`主管：${esc(l.manager)}<br>`;if(l.client)detail+=`客戶：${esc(l.client)}`;}
+    else if(l.useType==='event'){badge=`<span class="badge log-badge-event">活動使用</span>`;if(l.docNo)detail+=`發文字號：${esc(l.docNo)}<br>`;if(l.eventName)detail+=`活動：${esc(l.eventName)}`;}
+    else{badge=`<span class="badge log-badge-vip">公關使用</span>`;if(l.manager)detail+=`主管：${esc(l.manager)}<br>`;if(l.client)detail+=`客戶：${esc(l.client)}`;}
     return`<tr>
       <td style="white-space:nowrap">${String(l.date||'').slice(0,10)}</td>
       <td>${badge}</td>
@@ -914,7 +914,7 @@ function exportExcel(){
   XLSX.utils.book_append_sheet(wb,ws1,'庫存總覽');
 
   // Sheet 2: 使用記錄
-  const logRows=[['日期','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','單位/主管','客戶','備註']];
+  const logRows=[['日期','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','主管','客戶','備註']];
   [...logs].sort((a,b)=>a.id-b.id).forEach(l=>{
     const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'公關使用';
     logRows.push([
