@@ -141,7 +141,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   </div>
   <div class="nav-right">
     <span id="syncStatus" style="font-size:12px;color:var(--text2)">載入中...</span>
-    <button class="btn btn-sm" onclick="loadFromSheets()">重新整理</button>
+    <button class="btn btn-sm" onclick="loadFromSheets(true)">重新整理</button>
   </div>
 </nav>
 
@@ -412,31 +412,72 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 /* SYNC */
 function setStatus(msg,color){const el=document.getElementById('syncStatus');el.textContent=msg;el.style.color=color||'var(--text2)';}
-async function apiGet(){const r=await fetch(API+'?action=getAll');return r.json();}
-async function apiPost(body){await fetch(API,{method:'POST',body:JSON.stringify(body)});}
+async function apiGet(){
+  const r=await fetch(API+'?action=getAll',{redirect:'follow'});
+  const t=await r.text();
+  try{return JSON.parse(t);}catch(e){throw new Error('回應格式錯誤');}
+}
+async function apiPost(body){
+  const r=await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify(body)});
+  const t=await r.text();
+  try{return JSON.parse(t);}catch(e){return {ok:true};}
+}
 function parseLocs(raw){
   if(!raw)return[{name:'其他',qty:0}];
   if(Array.isArray(raw))return raw.map(l=>({name:String(l.name||''),qty:Number(l.qty)||0}));
   try{const p=JSON.parse(raw);return Array.isArray(p)?p.map(l=>({name:String(l.name||''),qty:Number(l.qty)||0})):[{name:'其他',qty:Number(raw)||0}];}
   catch(e){return[{name:'其他',qty:Number(raw)||0}];}
 }
-async function loadFromSheets(){
-  setStatus('載入中...','var(--text2)');
+const CACHE_KEY='rd_cache_v1';
+
+function applyData(data){
+  const raw=data.items||[];
+  if(raw.length===0) return false;
+  items=raw.map(i=>({...i,id:Number(i.id),year:Number(i.year)||'',price:Number(i.price),locations:parseLocs(i.locations)}));
+  logs=(data.logs||[]).map(l=>({...l,id:Number(l.id),itemId:Number(l.itemId),qty:Number(l.qty),price:Number(l.price)}));
+  const mm=Object.fromEntries((data.meta||[]).map(m=>[m.key,Number(m.value)]));
+  nextItemId=mm.nextItemId||(Math.max(0,...items.map(i=>i.id))+1);
+  nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
+  return true;
+}
+function saveCache(){
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId},ts:Date.now()}));}
+  catch(e){}
+}
+function loadCache(){
+  try{
+    const raw=localStorage.getItem(CACHE_KEY);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(!d.items||!d.items.length)return false;
+    return applyData(d);
+  }catch(e){return false;}
+}
+
+async function loadFromSheets(forceRefresh){
+  const hasCached=loadCache();
+  if(hasCached&&!forceRefresh){
+    buildLocFilter();renderInventory();
+    if(document.getElementById('page-log').classList.contains('active'))renderLog();
+    setStatus('快取已載入，同步中...','var(--text2)');
+  } else {
+    setStatus('載入中...','var(--text2)');
+  }
   try{
     const data=await apiGet();
     const raw=data.items||[];
     if(raw.length===0){
       items=DEFAULT_ITEMS;logs=[];nextItemId=30;nextLogId=1;
       await pushAll();
-    }else{
-      items=raw.map(i=>({...i,id:Number(i.id),year:Number(i.year)||'',price:Number(i.price),locations:parseLocs(i.locations)}));
-      logs=(data.logs||[]).map(l=>({...l,id:Number(l.id),itemId:Number(l.itemId),qty:Number(l.qty),price:Number(l.price)}));
-      const mm=Object.fromEntries((data.meta||[]).map(m=>[m.key,Number(m.value)]));
-      nextItemId=mm.nextItemId||(Math.max(0,...items.map(i=>i.id))+1);
-      nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
+    } else {
+      applyData(data);
     }
+    saveCache();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
-  }catch(e){setStatus('無法連線，顯示預設資料','#A32D2D');items=DEFAULT_ITEMS;}
+  }catch(e){
+    if(!hasCached){items=DEFAULT_ITEMS;}
+    setStatus(hasCached?'網路異常，顯示快取資料':'無法連線，顯示預設資料','#A32D2D');
+  }
   buildLocFilter();renderInventory();
   if(document.getElementById('page-log').classList.contains('active'))renderLog();
 }
@@ -447,6 +488,7 @@ async function pushAll(){
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
+    saveCache();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
   }catch(e){setStatus('儲存失敗，請重試','#A32D2D');}
   isSyncing=false;
