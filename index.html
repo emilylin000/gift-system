@@ -324,7 +324,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
       </div>
       <div id="fieldsVip" style="display:none">
         <div class="form-row two">
-          <div><label>主管職稱</label><input id="lManager" type="text" placeholder="例：總經理"/></div>
+          <div><label>單位or主管</label><input id="lManager" type="text" placeholder="例：總管理處or總經理"/></div>
           <div><label>客戶姓名</label><input id="lClient" type="text" placeholder="例：陳先生"/></div>
         </div>
       </div>
@@ -914,9 +914,9 @@ function exportExcel(){
   XLSX.utils.book_append_sheet(wb,ws1,'庫存總覽');
 
   // Sheet 2: 使用記錄
-  const logRows=[['日期','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','主管','客戶','備註']];
+  const logRows=[['日期','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','單位/主管','客戶','備註']];
   [...logs].sort((a,b)=>a.id-b.id).forEach(l=>{
-    const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'主管公關';
+    const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'公關使用';
     logRows.push([
       String(l.date||'').slice(0,10),
       type,
