@@ -405,7 +405,7 @@ const DEFAULT_ITEMS=[
 ];
 
 let items=[],logs=[],nextItemId=30,nextLogId=1;
-let editingItemId=null,currentLogType='in',currentUseType='event',pendingPhoto='',isSyncing=false,editingLocs=[],hideZero=false;
+let editingItemId=null,editingLogId=null,currentLogType='in',currentUseType='event',pendingPhoto='',isSyncing=false,editingLocs=[],hideZero=false;
 
 function totalQty(i){return(i.locations||[]).reduce((s,l)=>s+Number(l.qty||0),0);}
 function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
@@ -698,6 +698,7 @@ function fillLogFields(){
   }
 }
 function openLogModal(type,itemId){
+  editingLogId=null;
   currentLogType=type;
   document.getElementById('logModalTitle').textContent=type==='in'?'記錄贈品入庫':'記錄贈品使用';
   document.getElementById('lDate').value=today();document.getElementById('lQty').value=1;document.getElementById('lNote').value='';
@@ -708,22 +709,72 @@ function openLogModal(type,itemId){
   else{document.getElementById('lPrice').value='';document.getElementById('lLoc').innerHTML='';}
   document.getElementById('logModal').classList.add('open');
 }
+function editLog(id){
+  const l=logs.find(x=>x.id===id);
+  if(!l)return;
+  editingLogId=id;
+  currentLogType=l.type;
+  document.getElementById('logModalTitle').textContent='編輯記錄';
+  document.getElementById('lDate').value=String(l.date||'').slice(0,10);
+  document.getElementById('lQty').value=l.qty;
+  document.getElementById('lPrice').value=l.price;
+  document.getElementById('lNote').value=l.note||'';
+  ['lDocNo','lEventName','lManager','lClient'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('useTypeSection').style.display=l.type==='out'?'':'none';
+  switchUseType(l.useType||'event');
+  if(l.docNo)document.getElementById('lDocNo').value=l.docNo;
+  if(l.eventName)document.getElementById('lEventName').value=l.eventName;
+  if(l.manager)document.getElementById('lManager').value=l.manager;
+  if(l.client)document.getElementById('lClient').value=l.client;
+  populateLogSelect();
+  document.getElementById('lItem').value=l.itemId;
+  const locSel=document.getElementById('lLoc');
+  locSel.innerHTML='';
+  const item=items.find(i=>i.id===l.itemId);
+  if(item&&item.locations){
+    item.locations.filter(x=>x.name).forEach(x=>{
+      const o=document.createElement('option');o.value=x.name;
+      o.textContent=`${x.name}（${x.qty}件）`;locSel.appendChild(o);
+    });
+  }
+  if(l.locName){
+    if(!locSel.querySelector(`option[value="${l.locName}"]`)){
+      const o=document.createElement('option');o.value=l.locName;o.textContent=l.locName;locSel.appendChild(o);
+    }
+    locSel.value=l.locName;
+  }
+  document.getElementById('logModal').classList.add('open');
+}
 function quickLog(id,type){openLogModal(type,id);}
 function saveLog(){
+  const qty=parseInt(document.getElementById('lQty').value)||0;
+  if(qty<=0){alert('請輸入有效數量');return;}
+  const price=parseFloat(document.getElementById('lPrice').value)||0;
+  const note=document.getElementById('lNote').value.trim();
+  const date=document.getElementById('lDate').value||today();
+  const locName=document.getElementById('lLoc').value;
+
+  if(editingLogId){
+    const l=logs.find(x=>x.id===editingLogId);
+    if(!l)return;
+    l.date=date;l.qty=qty;l.price=price;l.note=note;l.locName=locName;
+    if(l.type==='out'){
+      l.useType=currentUseType;
+      if(currentUseType==='event'){l.docNo=document.getElementById('lDocNo').value.trim();l.eventName=document.getElementById('lEventName').value.trim();l.manager='';l.client='';}
+      else{l.manager=document.getElementById('lManager').value.trim();l.client=document.getElementById('lClient').value.trim();l.docNo='';l.eventName='';}
+    }
+    saveLogs();closeModal('logModal');renderLog();
+    return;
+  }
+
   const itemId=parseInt(document.getElementById('lItem').value);
   if(!itemId){alert('請選擇品項');return;}
   const item=items.find(i=>i.id===itemId);if(!item){alert('品項不存在');return;}
-  const qty=parseInt(document.getElementById('lQty').value)||0;
-  if(qty<=0){alert('請輸入有效數量');return;}
-  const locName=document.getElementById('lLoc').value;
   let loc=item.locations.find(l=>l.name===locName);
   if(currentLogType==='out'){
     if(!loc){alert('請選擇地點');return;}
     if(qty>loc.qty){alert(`此地點庫存不足（${locName} 現有 ${loc.qty} 件）`);return;}
   }
-  const price=parseFloat(document.getElementById('lPrice').value)||0;
-  const note=document.getElementById('lNote').value.trim();
-  const date=document.getElementById('lDate').value||today();
   if(currentLogType==='in'){if(loc){loc.qty+=qty;}else{item.locations.push({name:locName||'其他',qty});}}
   else{loc.qty-=qty;}
   let extra={locName};
@@ -766,7 +817,7 @@ function renderLog(){
       <td>NT$ ${fmtP(l.price)}</td>
       <td>NT$ ${fmtN(l.price*l.qty)}</td>
       <td style="font-size:12px;color:var(--text2);line-height:1.6">${detail}${detail&&l.note?'<br>':''}${l.note?esc(l.note):''}</td>
-      <td><button class="act-btn del" onclick="deleteLog(${l.id})">刪除</button></td>
+      <td><div class="acts"><button class="act-btn" onclick="editLog(${l.id})">編輯</button><button class="act-btn del" onclick="deleteLog(${l.id})">刪除</button></div></td>
     </tr>`;
   }).join('');
 }
