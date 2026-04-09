@@ -130,10 +130,20 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .import-log .iwarn{color:#854F0B}
 .badge-safe{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--green-bg);color:var(--green-text);font-weight:500;margin-left:6px;vertical-align:middle}
 .field-hint{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5}
+
+/* lock banner */
+.lock-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:#A32D2D;color:#fff;font-size:13px;padding:10px 20px;text-align:center;line-height:1.5}
+.lock-banner.show{display:block}
+.lock-banner a{color:#fff;text-decoration:underline;cursor:pointer;margin-left:12px;font-weight:500}
+.lock-mine{background:#0F6E56!important}
 </style>
 </head>
 <body>
 
+<div class="lock-banner" id="lockBanner">
+  <span id="lockMsg"></span>
+  <a onclick="forceReleaseLock()">強制解除鎖定</a>
+</div>
 <nav class="nav">
   <div class="nav-brand">鎔德行銷 · 贈品管理</div>
   <div class="nav-tabs">
@@ -456,15 +466,139 @@ function loadCache(){
   }catch(e){return false;}
 }
 
+
+/* ===== LOCK ===== */
+const USER_ID = 'user_' + Math.random().toString(36).slice(2,8);
+const USER_NAME = '';
+let lockCheckTimer = null;
+let iAmLocked = false;
+
+function promptUserName(){
+  let name = localStorage.getItem('rd_username');
+  if(!name){
+    name = prompt('請輸入你的名稱（用於鎖定識別）：') || '匿名';
+    localStorage.setItem('rd_username', name);
+  }
+  return name;
+}
+
+async function acquireLock(){
+  const name = promptUserName();
+  try{
+    const r = await fetch(API, {method:'POST', redirect:'follow',
+      body: JSON.stringify({action:'acquireLock', userId:USER_ID, userName:name})});
+    const t = await r.text();
+    const d = JSON.parse(t);
+    if(d.ok){
+      iAmLocked = true;
+      showLockBanner(true, name);
+      if(lockCheckTimer) clearInterval(lockCheckTimer);
+      lockCheckTimer = setInterval(renewLock, 60000);
+      return true;
+    } else {
+      const ago = d.lockedAt ? Math.round((Date.now()-Number(d.lockedAt))/60000) : '?';
+      alert(`目前由「${d.lockedBy}」鎖定中（${ago} 分鐘前），請等對方完成後再操作。`);
+      return false;
+    }
+  }catch(e){ return false; }
+}
+
+async function renewLock(){
+  if(!iAmLocked) return;
+  const name = localStorage.getItem('rd_username')||'匿名';
+  try{
+    await fetch(API, {method:'POST', redirect:'follow',
+      body: JSON.stringify({action:'acquireLock', userId:USER_ID, userName:name})});
+  }catch(e){}
+}
+
+async function releaseLock(){
+  if(!iAmLocked) return;
+  iAmLocked = false;
+  if(lockCheckTimer){ clearInterval(lockCheckTimer); lockCheckTimer=null; }
+  showLockBanner(false);
+  try{
+    await fetch(API, {method:'POST', redirect:'follow',
+      body: JSON.stringify({action:'releaseLock', userId:USER_ID})});
+  }catch(e){}
+}
+
+async function forceReleaseLock(){
+  if(!confirm('確定要強制解除鎖定？請確認對方已停止操作。')) return;
+  iAmLocked = false;
+  if(lockCheckTimer){ clearInterval(lockCheckTimer); lockCheckTimer=null; }
+  showLockBanner(false);
+  try{
+    await fetch(API, {method:'POST', redirect:'follow',
+      body: JSON.stringify({action:'releaseLock', userId:'force'})});
+  }catch(e){}
+}
+
+async function checkLock(){
+  try{
+    const r = await fetch(API+'?action=getLock', {redirect:'follow'});
+    const t = await r.text();
+    const d = JSON.parse(t);
+    if(d.locked && d.userId !== USER_ID){
+      const ago = d.lockedAt ? Math.round((Date.now()-Number(d.lockedAt))/60000) : '?';
+      showLockBanner(false, d.userName, ago);
+    } else if(!d.locked && !iAmLocked){
+      showLockBanner(false);
+    }
+  }catch(e){}
+}
+
+function showLockBanner(mine, name, ago){
+  const banner = document.getElementById('lockBanner');
+  const msg = document.getElementById('lockMsg');
+  const forceLink = banner.querySelector('a');
+  if(mine){
+    banner.classList.add('show','lock-mine');
+    banner.classList.remove('lock-mine'==='' ? '' : '');
+    banner.style.background='#0F6E56';
+    msg.textContent = `🔒 你正在編輯中（${name}）。完成後請關閉視窗或點「解除鎖定」讓他人可以編輯。`;
+    forceLink.textContent='解除鎖定';
+    forceLink.onclick=()=>releaseLock();
+    banner.classList.add('show');
+  } else if(name){
+    banner.style.background='#A32D2D';
+    msg.textContent = `🔒 目前由「${name}」鎖定編輯中（${ago} 分鐘前）。請等對方完成後再操作。`;
+    forceLink.textContent='強制解除';
+    forceLink.onclick=()=>forceReleaseLock();
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+async function withLock(fn){
+  const ok = await acquireLock();
+  if(!ok) return;
+  try{ await fn(); }
+  finally{ await releaseLock(); }
+}
+
+window.addEventListener('beforeunload', ()=>{ releaseLock(); });
+let _pollTimer=null;
+const POLL_INTERVAL=60000;
+
 async function loadFromSheets(forceRefresh){
   const hasCached=loadCache();
-  if(hasCached&&!forceRefresh){
+  if(hasCached){
     buildLocFilter();renderInventory();
     if(document.getElementById('page-log').classList.contains('active'))renderLog();
-    setStatus('快取已載入，同步中...','var(--text2)');
-  } else {
-    setStatus('載入中...','var(--text2)');
+    if(!forceRefresh) setStatus('載入中...','var(--text2)');
   }
+  if(!forceRefresh && hasCached){
+    _syncFromSheets();
+  } else {
+    setStatus('同步中...','var(--text2)');
+    await _syncFromSheets();
+  }
+  _startPolling();
+}
+
+async function _syncFromSheets(){
   try{
     const data=await apiGet();
     const raw=data.items||[];
@@ -476,15 +610,24 @@ async function loadFromSheets(forceRefresh){
     }
     saveCache();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
+    buildLocFilter();renderInventory();
+    if(document.getElementById('page-log').classList.contains('active'))renderLog();
   }catch(e){
-    if(!hasCached){items=DEFAULT_ITEMS;}
-    setStatus(hasCached?'網路異常，顯示快取資料':'無法連線，顯示預設資料','#A32D2D');
+    setStatus('連線失敗，顯示快取','#A32D2D');
   }
-  buildLocFilter();renderInventory();
-  if(document.getElementById('page-log').classList.contains('active'))renderLog();
+}
+
+function _startPolling(){
+  if(_pollTimer) clearInterval(_pollTimer);
+  _pollTimer=setInterval(()=>{
+    if(!isSyncing) _syncFromSheets();
+    checkLock();
+  }, POLL_INTERVAL);
 }
 async function pushAll(){
-  if(isSyncing)return;isSyncing=true;setStatus('儲存中...','#854F0B');
+  if(isSyncing)return;
+  isSyncing=true;
+  setStatus('儲存中...','#854F0B');
   try{
     const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
     await apiPost({action:'saveItems',items:toSave});
@@ -493,10 +636,70 @@ async function pushAll(){
     saveCache();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
   }catch(e){setStatus('儲存失敗，請重試','#A32D2D');}
+  await releaseLock();
   isSyncing=false;
 }
-function saveItems(){pushAll();}
-function saveLogs(){pushAll();}
+
+async function saveItems(){
+  await fetchLatestThenPush('items');
+}
+async function saveLogs(){
+  await fetchLatestThenPush('logs');
+}
+
+async function fetchLatestThenPush(changed){
+  if(isSyncing)return;
+  isSyncing=true;
+  setStatus('儲存中...','#854F0B');
+  const name=localStorage.getItem('rd_username')||'匿名';
+  try{
+    const lr=await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'acquireLock',userId:USER_ID,userName:name})});
+    const lt=await lr.text();
+    const ld=JSON.parse(lt);
+    if(!ld.ok){
+      isSyncing=false;
+      const ago=ld.lockedAt?Math.round((Date.now()-Number(ld.lockedAt))/60000):'?';
+      alert(`目前由「${ld.lockedBy}」鎖定中（${ago} 分鐘前），無法儲存。`);
+      return;
+    }
+    iAmLocked=true;
+    showLockBanner(true,name);
+  }catch(e){}
+  try{
+    const data=await apiGet();
+    const serverItems=(data.items||[]).map(i=>({...i,id:Number(i.id),year:Number(i.year)||'',price:Number(i.price),locations:parseLocs(i.locations)}));
+    const serverLogs=(data.logs||[]).map(l=>({...l,id:Number(l.id),itemId:Number(l.itemId),qty:Number(l.qty),price:Number(l.price)}));
+    const mm=Object.fromEntries((data.meta||[]).map(m=>[m.key,Number(m.value)]));
+
+    if(changed==='items'){
+      const myIds=new Set(items.map(i=>i.id));
+      serverItems.forEach(si=>{
+        if(!myIds.has(si.id)) items.push(si);
+      });
+      logs=serverLogs;
+      nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
+    } else {
+      const myLogIds=new Set(logs.map(l=>l.id));
+      serverLogs.forEach(sl=>{
+        if(!myLogIds.has(sl.id)) logs.push(sl);
+      });
+      items=serverItems;
+      nextItemId=mm.nextItemId||(items.length?Math.max(...items.map(i=>i.id))+1:1);
+    }
+
+    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
+    await apiPost({action:'saveItems',items:toSave});
+    await apiPost({action:'saveLogs',logs});
+    await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
+    saveCache();
+    buildLocFilter();renderInventory();
+    if(document.getElementById('page-log').classList.contains('active'))renderLog();
+    setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
+  }catch(e){
+    setStatus('儲存失敗，請重試','#A32D2D');
+  }
+  isSyncing=false;
+}
 
 /* NAV */
 document.querySelectorAll('.nav-tab').forEach(tab=>{
