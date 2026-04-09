@@ -409,7 +409,7 @@ let editingItemId=null,editingLogId=null,currentLogType='in',currentUseType='eve
 function totalQty(i){return(i.locations||[]).reduce((s,l)=>s+Number(l.qty||0),0);}
 function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
 function fmtP(p){return Number(p).toLocaleString('zh-TW',{minimumFractionDigits:p%1===0?0:1,maximumFractionDigits:1});}
-function today(){return new Date().toISOString().slice(0,10);}
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 /* SYNC */
@@ -1011,7 +1011,7 @@ function exportExcel(){
   ws2['!cols']=[{wch:12},{wch:10},{wch:24},{wch:12},{wch:6},{wch:12},{wch:12},{wch:18},{wch:20},{wch:10},{wch:10},{wch:16}];
   XLSX.utils.book_append_sheet(wb,ws2,'使用記錄');
 
-  const date=new Date().toISOString().slice(0,10);
+  const date=today();
   XLSX.writeFile(wb,`鎔德贈品稽核表_${date}.xlsx`);
 }
 loadFromSheets();
