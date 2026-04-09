@@ -209,7 +209,6 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <option value="newest">最新優先</option>
       <option value="oldest">最舊優先</option>
     </select>
-    <button class="btn btn-success" onclick="openLogModal('in')">＋ 新增入庫</button>
     <button class="btn btn-warn" onclick="openLogModal('out')">− 記錄使用</button>
   </div>
   <div class="summary-line" id="logSummaryLine"></div>
@@ -757,13 +756,33 @@ function saveLog(){
   if(editingLogId){
     const l=logs.find(x=>x.id===editingLogId);
     if(!l)return;
-    l.date=date;l.qty=qty;l.price=price;l.note=note;l.locName=locName;
+    const item=items.find(i=>i.id===l.itemId);
+    if(item){
+      const oldLoc=item.locations.find(x=>x.name===l.locName);
+      if(oldLoc){
+        if(l.type==='in') oldLoc.qty-=l.qty;
+        else oldLoc.qty+=l.qty;
+      }
+      const newLocName=document.getElementById('lLoc').value||l.locName;
+      let newLoc=item.locations.find(x=>x.name===newLocName);
+      if(!newLoc){item.locations.push({name:newLocName,qty:0});newLoc=item.locations[item.locations.length-1];}
+      if(l.type==='in'){
+        if(newLoc.qty+qty<0){alert('還原後庫存不足，無法修改');if(oldLoc){if(l.type==='in')oldLoc.qty+=l.qty;else oldLoc.qty-=l.qty;}return;}
+        newLoc.qty+=qty;
+      } else {
+        if(newLoc.qty-qty<0){alert(`此地點庫存不足（${newLocName} 現有 ${newLoc.qty} 件）`);if(oldLoc){if(l.type==='in')oldLoc.qty+=l.qty;else oldLoc.qty-=l.qty;}return;}
+        newLoc.qty-=qty;
+      }
+      l.locName=newLocName;
+    }
+    l.date=date;l.qty=qty;l.price=price;l.note=note;
     if(l.type==='out'){
       l.useType=currentUseType;
       if(currentUseType==='event'){l.docNo=document.getElementById('lDocNo').value.trim();l.eventName=document.getElementById('lEventName').value.trim();l.manager='';l.client='';}
       else{l.manager=document.getElementById('lManager').value.trim();l.client=document.getElementById('lClient').value.trim();l.docNo='';l.eventName='';}
     }
-    saveLogs();closeModal('logModal');renderLog();
+    saveItems();saveLogs();closeModal('logModal');renderInventory();
+    if(document.getElementById('page-log').classList.contains('active'))renderLog();
     return;
   }
 
@@ -797,7 +816,12 @@ function renderLog(){
     const txt=(String(l.year||'')+l.src+l.name+(l.docNo||'')+(l.eventName||'')+(l.manager||'')+(l.client||'')).toLowerCase();
     return txt.includes(q)&&(type===''||l.type===type||(type==='event'&&l.useType==='event')||(type==='vip'&&l.useType==='vip'));
   });
-  data.sort((a,b)=>sort==='newest'?b.id-a.id:a.id-b.id);
+  data.sort((a,b)=>{
+    const da=String(a.date||'').slice(0,10);
+    const db=String(b.date||'').slice(0,10);
+    if(da!==db) return sort==='newest'?db.localeCompare(da):da.localeCompare(db);
+    return sort==='newest'?b.id-a.id:a.id-b.id;
+  });
   const ti=logs.filter(l=>l.type==='in').reduce((s,l)=>s+l.qty,0);
   const to=logs.filter(l=>l.type==='out').reduce((s,l)=>s+l.qty,0);
   document.getElementById('logSummaryLine').innerHTML=`共 <strong>${logs.length}</strong> 筆 · 購入 <strong>${ti}</strong> 件 · 使用 <strong>${to}</strong> 件`;
