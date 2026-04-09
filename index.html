@@ -215,7 +215,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th>日期</th><th>類型</th><th>品項名稱</th><th>地點</th><th>數量</th><th>單價</th><th>金額</th><th>詳細 / 備註</th><th>操作</th>
+        <th>年月</th><th>類型</th><th>品項名稱</th><th>地點</th><th>數量</th><th>單價</th><th>金額</th><th>詳細 / 備註</th><th>操作</th>
       </tr></thead>
       <tbody id="logBody"></tbody>
     </table>
@@ -282,8 +282,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
   <div class="modal">
     <h2 id="logModalTitle">記錄贈品購入</h2>
     <div class="form-row">
-      <label>日期</label>
-      <input id="lDate" type="date"/>
+      <label>年月</label>
+      <input id="lDate" type="month"/>
     </div>
     <div class="form-row">
       <label>品項</label>
@@ -409,7 +409,7 @@ let editingItemId=null,editingLogId=null,currentLogType='in',currentUseType='eve
 function totalQty(i){return(i.locations||[]).reduce((s,l)=>s+Number(l.qty||0),0);}
 function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
 function fmtP(p){return Number(p).toLocaleString('zh-TW',{minimumFractionDigits:p%1===0?0:1,maximumFractionDigits:1});}
-function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 /* SYNC */
@@ -714,7 +714,7 @@ function editLog(id){
   editingLogId=id;
   currentLogType=l.type;
   document.getElementById('logModalTitle').textContent='編輯記錄';
-  document.getElementById('lDate').value=String(l.date||'').slice(0,10);
+  document.getElementById('lDate').value=String(l.date||'').slice(0,7);
   document.getElementById('lQty').value=l.qty;
   document.getElementById('lPrice').value=l.price;
   document.getElementById('lNote').value=l.note||'';
@@ -817,8 +817,8 @@ function renderLog(){
     return txt.includes(q)&&(type===''||l.type===type||(type==='event'&&l.useType==='event')||(type==='vip'&&l.useType==='vip'));
   });
   data.sort((a,b)=>{
-    const da=String(a.date||'').slice(0,10);
-    const db=String(b.date||'').slice(0,10);
+    const da=String(a.date||'').slice(0,7);
+    const db=String(b.date||'').slice(0,7);
     if(da!==db) return sort==='newest'?db.localeCompare(da):da.localeCompare(db);
     return sort==='newest'?b.id-a.id:a.id-b.id;
   });
@@ -833,7 +833,7 @@ function renderLog(){
     else if(l.useType==='event'){badge=`<span class="badge log-badge-event">活動使用</span>`;if(l.docNo)detail+=`發文字號：${esc(l.docNo)}<br>`;if(l.eventName)detail+=`活動：${esc(l.eventName)}`;}
     else{badge=`<span class="badge log-badge-vip">公關使用</span>`;if(l.manager)detail+=`主管：${esc(l.manager)}<br>`;if(l.client)detail+=`客戶：${esc(l.client)}`;}
     return`<tr>
-      <td style="white-space:nowrap">${String(l.date||'').slice(0,10)}</td>
+      <td style="white-space:nowrap">${String(l.date||'').slice(0,7)}</td>
       <td>${badge}</td>
       <td style="font-weight:500">${esc(l.name)}</td>
       <td style="font-size:12px;color:var(--text2)">${esc(l.locName||'')}</td>
@@ -993,7 +993,7 @@ function exportExcel(){
   [...logs].sort((a,b)=>a.id-b.id).forEach(l=>{
     const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'公關使用';
     logRows.push([
-      String(l.date||'').slice(0,10),
+      String(l.date||'').slice(0,7),
       type,
       l.name,
       l.locName||'',
