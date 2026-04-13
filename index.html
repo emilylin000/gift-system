@@ -641,10 +641,10 @@ async function pushAll(){
 }
 
 async function saveItems(){
-  await fetchLatestThenPush('items');
+  await fetchLatestThenPush('both');
 }
 async function saveLogs(){
-  await fetchLatestThenPush('logs');
+  await fetchLatestThenPush('both');
 }
 
 async function fetchLatestThenPush(changed){
@@ -673,18 +673,21 @@ async function fetchLatestThenPush(changed){
 
     if(changed==='items'){
       const myIds=new Set(items.map(i=>i.id));
-      serverItems.forEach(si=>{
-        if(!myIds.has(si.id)) items.push(si);
-      });
+      serverItems.forEach(si=>{if(!myIds.has(si.id)) items.push(si);});
       logs=serverLogs;
       nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
-    } else {
+    } else if(changed==='logs'){
       const myLogIds=new Set(logs.map(l=>l.id));
-      serverLogs.forEach(sl=>{
-        if(!myLogIds.has(sl.id)) logs.push(sl);
-      });
+      serverLogs.forEach(sl=>{if(!myLogIds.has(sl.id)) logs.push(sl);});
       items=serverItems;
       nextItemId=mm.nextItemId||(items.length?Math.max(...items.map(i=>i.id))+1:1);
+    } else {
+      const myIds=new Set(items.map(i=>i.id));
+      serverItems.forEach(si=>{if(!myIds.has(si.id)) items.push(si);});
+      const myLogIds=new Set(logs.map(l=>l.id));
+      serverLogs.forEach(sl=>{if(!myLogIds.has(sl.id)) logs.push(sl);});
+      nextItemId=mm.nextItemId||(items.length?Math.max(...items.map(i=>i.id))+1:1);
+      nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
     }
 
     const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
@@ -984,7 +987,7 @@ function saveLog(){
       if(currentUseType==='event'){l.docNo=document.getElementById('lDocNo').value.trim();l.eventName=document.getElementById('lEventName').value.trim();l.manager='';l.client='';}
       else{l.manager=document.getElementById('lManager').value.trim();l.client=document.getElementById('lClient').value.trim();l.docNo='';l.eventName='';}
     }
-    saveItems();saveLogs();closeModal('logModal');renderInventory();
+    saveItems();closeModal('logModal');renderInventory();
     if(document.getElementById('page-log').classList.contains('active'))renderLog();
     return;
   }
@@ -1006,7 +1009,7 @@ function saveLog(){
     else{extra.manager=document.getElementById('lManager').value.trim();extra.client=document.getElementById('lClient').value.trim();}
   }
   logs.push({id:nextLogId++,date,type:currentLogType,itemId,year:item.year||'',src:item.src,name:item.name,qty,price,note,...extra});
-  saveItems();saveLogs();closeModal('logModal');renderInventory();
+  saveItems();closeModal('logModal');renderInventory();
   if(document.getElementById('page-log').classList.contains('active'))renderLog();
 }
 
