@@ -505,12 +505,15 @@ function _applyData(data){
 }
 function _saveCache(){
   try{
-    localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId}}));
-    const photos={};items.forEach(i=>{if(i.photo)photos[i.id]=i.photo;});
-    localStorage.setItem('rd_photos',JSON.stringify(photos));
+    localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''})),logs,meta:{nextItemId,nextLogId}}));
   }catch(e){}
 }
-function _loadPhotos(){}
+function _loadPhotos(){
+  try{
+    const photos=JSON.parse(localStorage.getItem('rd_photos')||'{}');
+    items.forEach(i=>{if(photos[i.id])i.photo=photos[i.id];});
+  }catch(e){}
+}
 function _loadCache(){try{const r=localStorage.getItem(CACHE_KEY);if(!r)return false;const d=JSON.parse(r);return _applyData(d);}catch(e){return false;}}
 
 /* LOCK */
@@ -557,7 +560,9 @@ async function _push(){
   isSyncing=true;
   setStatus('儲存中...','#854F0B');
   try{
-    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
+    const photoStore={};items.forEach(i=>{if(i.photo)photoStore[i.id]=i.photo;});
+    localStorage.setItem('rd_photos',JSON.stringify(photoStore));
+    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''}));
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
