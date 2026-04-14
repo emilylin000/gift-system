@@ -193,8 +193,6 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <option value="asc">升冪</option>
     </select>
     <button class="btn" id="toggleZeroBtn" onclick="toggleHideZero()">隱藏庫存 0</button>
-    <button class="btn" onclick="exportExcel()">匯出稽核表</button>
-    <button class="btn" id="toggleZeroBtn" onclick="toggleHideZero()">隱藏庫存 0</button>
     <button class="btn btn-primary" onclick="openItemModal()">＋ 新增品項</button>
   </div>
   <div class="summary-line" id="summaryLine"></div>
@@ -304,8 +302,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
   <div class="modal">
     <h2 id="logModalTitle">記錄贈品購入</h2>
     <div class="form-row">
-      <label>日期</label>
-      <input id="lDate" type="date"/>
+      <label>年月</label>
+      <input id="lDate" type="month"/>
     </div>
     <div class="form-row">
       <label>品項</label>
@@ -1001,64 +999,6 @@ async function runBatchImport(){
 }
 
 /* EXPORT EXCEL */
-function exportExcel(){
-  const wb=XLSX.utils.book_new();
-
-  // Sheet 1: 庫存總覽
-  const invRows=[['年份','來源','品項名稱','類別','單價（NT$）','庫存地點','數量','庫存總值（NT$）']];
-  items.forEach(i=>{
-    const locs=(i.locations||[]).filter(l=>l.qty>0);
-    if(locs.length===0){
-      invRows.push([i.year||'',i.src,i.name,i.cat,i.price,'',0,0]);
-    } else {
-      locs.forEach((l,idx)=>{
-        invRows.push(idx===0?[i.year||'',i.src,i.name,i.cat,i.price,l.name,l.qty,Math.round(i.price*l.qty)]:['','','','','',l.name,l.qty,Math.round(i.price*l.qty)]);
-      });
-    }
-  });
-  const ws1=XLSX.utils.aoa_to_sheet(invRows);
-  ws1['!cols']=[{wch:8},{wch:16},{wch:24},{wch:10},{wch:12},{wch:12},{wch:8},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws1,'庫存總覽');
-
-  // Sheet 2: 使用記錄
-  const logRows=[['日期','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','主管','客戶','備註']];
-  [...logs].sort((a,b)=>a.id-b.id).forEach(l=>{
-    const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'公關使用';
-    logRows.push([
-      String(l.date||'').slice(0,10),
-      type,
-      l.name,
-      l.locName||'',
-      l.type==='in'?l.qty:-l.qty,
-      l.price,
-      Math.round(l.price*l.qty),
-      l.docNo||'',
-      l.eventName||'',
-      l.manager||'',
-      l.client||'',
-      l.note||''
-    ]);
-  });
-  const ws2=XLSX.utils.aoa_to_sheet(logRows);
-  ws2['!cols']=[{wch:12},{wch:10},{wch:24},{wch:12},{wch:6},{wch:12},{wch:12},{wch:18},{wch:20},{wch:10},{wch:10},{wch:16}];
-  XLSX.utils.book_append_sheet(wb,ws2,'使用記錄');
-
-  const date=new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb,`鎔德贈品稽核表_${date}.xlsx`);
-}
-
-/* IMPORT */
-let _impRows=[];
-function onImpDragOver(e){e.preventDefault();document.getElementById('importDropzone').classList.add('over');}
-function onImpDragLeave(){document.getElementById('importDropzone').classList.remove('over');}
-function onImpDrop(e){e.preventDefault();document.getElementById('importDropzone').classList.remove('over');if(e.dataTransfer.files[0])_impProcess(e.dataTransfer.files[0]);}
-function onImpFileChange(e){if(e.target.files[0])_impProcess(e.target.files[0]);}
-function _impProcess(file){
-  document.getElementById('impDropLabel').textContent='📄 '+file.name;
-  const r=new FileReader();
-  r.onload=ev=>{const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];_impParse(XLSX.utils.sheet_to_json(ws,{header:1,defval:''}));};
-  r.readAsArrayBuffer(file);
-}
 function _impParse(rows){
   _impRows=[];
   rows.forEach(r=>{
