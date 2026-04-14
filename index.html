@@ -285,12 +285,10 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <textarea id="fNote" placeholder="選填備註..."></textarea>
     </div>
     <div class="form-row">
-      <label>贈品照片</label>
-      <div class="photo-upload-area" onclick="document.getElementById('photoFileInput').click()">
-        <span id="photoUploadLabel">點擊上傳照片（JPG / PNG）</span>
-        <img id="photoPreview" class="photo-preview" style="display:none"/>
-      </div>
-      <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)"/>
+      <label>贈品照片（Google Drive 連結）</label>
+      <input id="photoDriveUrl" type="text" placeholder="貼上 Google Drive 共用連結..." oninput="previewDrivePhoto(this.value)"/>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">開啟 Drive → 右鍵照片 → 共用 → 複製連結，貼上即可</div>
+      <img id="photoPreview" class="photo-preview" style="display:none;margin-top:8px"/>
     </div>
     <div class="form-actions">
       <button class="btn" onclick="closeModal('itemModal')">取消</button>
@@ -499,9 +497,17 @@ function _applyData(data){
   const mm=Object.fromEntries((data.meta||[]).map(m=>[m.key,Number(m.value)]));
   nextItemId=mm.nextItemId||(items.length?Math.max(...items.map(i=>i.id))+1:1);
   nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
+  _loadPhotos();
   return true;
 }
-function _saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId}}));}catch(e){}}
+function _saveCache(){
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId}}));
+    const photos={};items.forEach(i=>{if(i.photo)photos[i.id]=i.photo;});
+    localStorage.setItem('rd_photos',JSON.stringify(photos));
+  }catch(e){}
+}
+function _loadPhotos(){}
 function _loadCache(){try{const r=localStorage.getItem(CACHE_KEY);if(!r)return false;const d=JSON.parse(r);return _applyData(d);}catch(e){return false;}}
 
 /* LOCK */
@@ -548,7 +554,7 @@ async function _push(){
   const ok=await _acquireLock();
   if(!ok){isSyncing=false;return;}
   try{
-    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
+    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''}));
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
@@ -660,13 +666,26 @@ function renderInventory(){
 }
 
 /* PHOTO */
-function handlePhotoUpload(e){
-  const file=e.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=ev=>{pendingPhoto=ev.target.result;const p=document.getElementById('photoPreview');p.src=pendingPhoto;p.style.display='block';document.getElementById('photoUploadLabel').textContent='點擊更換照片';};
-  r.readAsDataURL(file);
+function driveUrlToImg(url){
+  if(!url) return '';
+  // 格式1: https://drive.google.com/file/d/FILE_ID/view?...
+  let m = url.match(/\/file\/d\/([^\/\?]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w200';
+  // 格式2: https://drive.google.com/open?id=FILE_ID
+  m = url.match(/[?&]id=([^&]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w200';
+  // 已經是圖片網址
+  if(url.startsWith('http')) return url;
+  return '';
 }
-function quickPhoto(id){
+function previewDrivePhoto(url){
+  const imgUrl = driveUrlToImg(url);
+  const prev = document.getElementById('photoPreview');
+  if(imgUrl){ prev.src=imgUrl; prev.style.display='block'; pendingPhoto=imgUrl; }
+  else{ prev.style.display='none'; pendingPhoto=''; }
+}
+function quickPhoto(id){ openItemModal(id); }
+function _oldQuickPhoto(id){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{const it=items.find(x=>x.id===id);if(it){it.photo=ev.target.result;saveItems();renderInventory();}};r.readAsDataURL(file);};
   inp.click();
@@ -691,8 +710,7 @@ function openItemModal(id){
   editingItemId=id||null;pendingPhoto='';
   document.getElementById('itemModalTitle').textContent=id?'編輯品項':'新增品項';
   const prev=document.getElementById('photoPreview');prev.style.display='none';prev.src='';
-  document.getElementById('photoUploadLabel').textContent='點擊上傳照片（JPG / PNG）';
-  document.getElementById('photoFileInput').value='';
+  document.getElementById('photoDriveUrl')&&(document.getElementById('photoDriveUrl').value='');
   if(id){
     const i=items.find(x=>x.id===id);
     document.getElementById('fYear').value=i.year||'';
@@ -702,7 +720,11 @@ function openItemModal(id){
     document.getElementById('fPrice').value=i.price;
     document.getElementById('fNote').value=i.note||'';
     editingLocs=JSON.parse(JSON.stringify(i.locations||[]));
-    if(i.photo){prev.src=i.photo;prev.style.display='block';pendingPhoto=i.photo;}
+    if(i.photo){
+      const el=document.getElementById('photoDriveUrl');
+      if(el) el.value=i.photo;
+      prev.src=i.photo;prev.style.display='block';pendingPhoto=i.photo;
+    }
   }else{
     document.getElementById('fYear').value=new Date().getFullYear();
     document.getElementById('fSrc').value='';document.getElementById('fName').value='';
