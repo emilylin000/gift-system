@@ -361,28 +361,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
 
 
 <!-- 批次匯入 -->
-<div class="page" id="page-import">
-  <div class="import-card">
-    <h3>批次新增購入 <span class="badge-safe">不覆蓋原資料</span></h3>
-    <p class="desc">上傳 Excel（.xlsx）或 CSV 檔案，系統解析後預覽，確認後新增到現有庫存。<br>
-    欄位順序：<strong>年份 ／ 來源 ／ 品項名稱 ／ 類別 ／ 單價 ／ 數量 ／ 庫存地點（選填，預設「2樓會議室」）</strong><br>
-    第一列可以是標題列，系統會自動略過。類別請填「一般贈品」或「財務列管」。</p>
-    <div class="dropzone" id="importDropzone"
-      onclick="document.getElementById('importFileInput').click()"
-      ondragover="onImportDragOver(event)" ondragleave="onImportDragLeave(event)" ondrop="onImportDrop(event)">
-      <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onImportFileChange(event)"/>
-      <span id="importDropLabel">點擊或拖曳上傳 Excel / CSV 檔案</span>
-    </div>
-    <div class="preview-wrap" id="importPreviewWrap" style="display:none">
-      <table><thead id="importPreviewHead"></thead><tbody id="importPreviewBody"></tbody></table>
-    </div>
-    <div id="importActions" style="display:none;margin-top:14px">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="importSummary"></div>
-      <button class="btn btn-success" id="importConfirmBtn" onclick="runBatchImport()" style="height:36px;width:auto;padding:0 20px">確認新增到庫存</button>
-    </div>
-    <div class="import-log" id="importLog"></div>
-  </div>
-</div>
+
 
 
 <div class="page" id="page-import">
@@ -410,7 +389,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
 </div>
 
 <script>
-const API='https://script.google.com/macros/s/AKfycbxPV26LbIt6Ah1J1cn5zV8KlpiSO70wGOIYrWujLI54EM3hEea-48LtRRgcR8Nvdds/exec';
+const API='https://script.google.com/macros/s/AKfycbyD7yd1D4QxkLbvzVRn13Lo-ZOzwhddZmXDitqr2sBsNYDQ5RY27znj8J8O68THag/exec';
 const DEFAULT_LOCS=['2樓會議室','2樓倉庫','BPS','舊宗','其他'];
 const DEFAULT_ITEMS=[
   {id:1,year:2020,src:'6GT贈品',name:'萬用毯',cat:'財務列管',price:1190,locations:[{name:'其他',qty:1}],note:'',photo:''},
@@ -500,19 +479,14 @@ function _applyData(data){
   const mm=Object.fromEntries((data.meta||[]).map(m=>[m.key,Number(m.value)]));
   nextItemId=mm.nextItemId||(items.length?Math.max(...items.map(i=>i.id))+1:1);
   nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
-  _loadPhotos();
   return true;
 }
 function _saveCache(){
   try{
-    localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''})),logs,meta:{nextItemId,nextLogId}}));
-  }catch(e){}
-}
-function _loadPhotos(){
-  try{
-    const photos=JSON.parse(localStorage.getItem('rd_photos')||'{}');
-    items.forEach(i=>{if(photos[i.id])i.photo=photos[i.id];});
-  }catch(e){}
+    localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId}}));
+  }catch(e){
+    try{localStorage.removeItem(CACHE_KEY);}catch(e2){}
+  }
 }
 function _loadCache(){try{const r=localStorage.getItem(CACHE_KEY);if(!r)return false;const d=JSON.parse(r);return _applyData(d);}catch(e){return false;}}
 
@@ -560,9 +534,7 @@ async function _push(){
   isSyncing=true;
   setStatus('儲存中...','#854F0B');
   try{
-    const photoStore={};items.forEach(i=>{if(i.photo)photoStore[i.id]=i.photo;});
-    localStorage.setItem('rd_photos',JSON.stringify(photoStore));
-    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''}));
+    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
@@ -697,11 +669,7 @@ function previewDrivePhoto(url){
   else{ prev.style.display='none'; pendingPhoto=''; }
 }
 function quickPhoto(id){ openItemModal(id); }
-function _oldQuickPhoto(id){
-  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{const it=items.find(x=>x.id===id);if(it){it.photo=ev.target.result;saveItems();renderInventory();}};r.readAsDataURL(file);};
-  inp.click();
-}
+
 function openLightbox(id){
   const it=items.find(i=>i.id===id);if(!it||!it.photo)return;
   const bigUrl=it.photo.replace(/sz=w\d+/,'sz=w1200').replace(/thumbnail\?/,'uc?export=view&');
