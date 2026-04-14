@@ -481,11 +481,14 @@ function _markPending(){
   setStatus('有未儲存的變更','#854F0B');
 }
 async function manualSave(){
-  document.getElementById('saveBtn').disabled=true;
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true;
+  btn.textContent='儲存中...';
   await _push();
   document.getElementById('pendingDot').style.display='none';
-  document.getElementById('saveBtn').style.display='none';
-  document.getElementById('saveBtn').disabled=false;
+  btn.style.display='none';
+  btn.textContent='儲存';
+  btn.disabled=false;
 }
 
 /* CACHE */
@@ -550,19 +553,23 @@ window.addEventListener('beforeunload',(e)=>{
 
 /* PUSH */
 async function _push(){
-  if(isSyncing)return;isSyncing=true;setStatus('儲存中...','#854F0B');
-  const ok=await _acquireLock();
-  if(!ok){isSyncing=false;return;}
+  if(isSyncing)return;
+  isSyncing=true;
+  setStatus('儲存中...','#854F0B');
   try{
     const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''}));
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
-    _saveCache();buildLocFilter();renderInventory();
+    _saveCache();
+    buildLocFilter();renderInventory();
     if(document.getElementById('page-log').classList.contains('active'))renderLog();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
-  }catch(e){setStatus('儲存失敗，請重試','#A32D2D');}
-  await _releaseLock();isSyncing=false;
+  }catch(e){
+    setStatus('儲存失敗：'+e.message,'#A32D2D');
+    console.error('Push error:',e);
+  }
+  isSyncing=false;
 }
 
 /* LOAD / POLL */
