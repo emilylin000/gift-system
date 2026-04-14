@@ -652,13 +652,16 @@ function renderInventory(){
 /* PHOTO */
 function driveUrlToImg(url){
   if(!url) return '';
+  let id = '';
   // 格式1: https://drive.google.com/file/d/FILE_ID/view?...
   let m = url.match(/\/file\/d\/([^\/\?]+)/);
-  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
+  if(m) id = m[1];
   // 格式2: https://drive.google.com/open?id=FILE_ID
-  m = url.match(/[?&]id=([^&]+)/);
-  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
-  // 已經是圖片網址
+  if(!id){ m = url.match(/[?&]id=([^&]+)/); if(m) id = m[1]; }
+  // 格式3: 已是 thumbnail 網址，取出 id
+  if(!id){ m = url.match(/thumbnail\?id=([^&]+)/); if(m) id = m[1]; }
+  if(id) return 'https://drive.google.com/thumbnail?id='+id+'&sz=w400&authuser=0';
+  // 已經是其他圖片網址
   if(url.startsWith('http')) return url;
   return '';
 }
@@ -672,8 +675,10 @@ function quickPhoto(id){ openItemModal(id); }
 
 function openLightbox(id){
   const it=items.find(i=>i.id===id);if(!it||!it.photo)return;
-  const bigUrl=it.photo.replace(/sz=w\d+/,'sz=w1200').replace(/thumbnail\?/,'uc?export=view&');
-  document.getElementById('lightboxImg').src=bigUrl||it.photo;
+  let bigUrl=it.photo;
+  const m=it.photo.match(/[?&]id=([^&]+)/);
+  if(m) bigUrl='https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1200&authuser=0';
+  document.getElementById('lightboxImg').src=bigUrl;
   document.getElementById('lightbox').classList.add('open');
 }
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
