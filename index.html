@@ -876,7 +876,7 @@ function renderLog(){
     else if(l.useType==='event'){badge=`<span class="badge log-badge-event">活動使用</span>`;if(l.docNo)detail+=`發文字號：${esc(l.docNo)}<br>`;if(l.eventName)detail+=`活動：${esc(l.eventName)}`;}
     else{badge=`<span class="badge log-badge-vip">公關使用</span>`;if(l.manager)detail+=`主管：${esc(l.manager)}<br>`;if(l.client)detail+=`客戶：${esc(l.client)}`;}
     return`<tr>
-      <td style="white-space:nowrap">${String(l.date||'').slice(0,10)}</td>
+      <td style="white-space:nowrap">${String(l.date||'').slice(0,7)}</td>
       <td>${badge}</td>
       <td style="font-weight:500">${esc(l.name)}</td>
       <td style="font-size:12px;color:var(--text2)">${esc(l.locName||'')}</td>
