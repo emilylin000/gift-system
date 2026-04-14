@@ -136,31 +136,25 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .lock-banner a{color:#fff;text-decoration:underline;cursor:pointer;margin-left:12px;font-weight:500}
 .row-zero{opacity:.45}
 .qty-zero{color:var(--text3)!important;font-weight:400!important}
-
 .import-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:16px}
 .import-card h3{font-size:14px;font-weight:500;margin-bottom:4px}
 .import-card .desc{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7}
-.dropzone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:26px;text-align:center;cursor:pointer;background:var(--bg2);color:var(--text2);font-size:13px;transition:.15s}
+.dropzone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:26px;text-align:center;cursor:pointer;background:var(--bg2);color:var(--text2);font-size:13px}
 .dropzone:hover,.dropzone.over{background:var(--bg3);border-color:#888}
-.preview-wrap{overflow:auto;max-height:280px;border:0.5px solid var(--border);border-radius:var(--radius);margin-top:12px}
-.preview-wrap table{width:100%;border-collapse:collapse;font-size:12px}
-.preview-wrap thead th{padding:6px 10px;background:var(--bg2);border-bottom:0.5px solid var(--border);text-align:left;white-space:nowrap;font-weight:500;color:var(--text2);font-size:11px;text-transform:uppercase}
-.preview-wrap tbody tr{border-bottom:0.5px solid var(--border)}
-.preview-wrap tbody td{padding:6px 10px;vertical-align:middle}
+.imp-preview{overflow:auto;max-height:260px;border:0.5px solid var(--border);border-radius:var(--radius);margin-top:12px}
+.imp-preview table{width:100%;border-collapse:collapse;font-size:12px}
+.imp-preview thead th{padding:6px 10px;background:var(--bg2);border-bottom:0.5px solid var(--border);text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase}
+.imp-preview tbody tr{border-bottom:0.5px solid var(--border)}
+.imp-preview tbody td{padding:6px 10px}
 .err-cell{color:#A32D2D;font-size:11px}
-.import-log{margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;border-top:0.5px solid var(--border);padding-top:10px;display:none}
-.import-log.show{display:block}
-.import-log .iok{color:#27500A;font-weight:500}
-.import-log .ierr{color:#A32D2D;font-weight:500}
+.imp-log{margin-top:10px;font-size:12px;color:var(--text2);line-height:1.9;display:none}
+.imp-log.show{display:block}
 .badge-safe{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--green-bg);color:var(--green-text);font-weight:500;margin-left:6px;vertical-align:middle}
 </style>
 </head>
 <body>
 
-<div class="lock-banner" id="lockBanner">
-  <span id="lockMsg"></span>
-  <a id="lockAction" onclick="">—</a>
-</div>
+<div class="lock-banner" id="lockBanner"><span id="lockMsg"></span><a id="lockAction"></a></div>
 <nav class="nav">
   <div class="nav-brand">鎔德行銷 · 贈品管理</div>
   <div class="nav-tabs">
@@ -201,7 +195,6 @@ tbody td{padding:9px 12px;vertical-align:middle}
     <button class="btn" id="toggleZeroBtn" onclick="toggleHideZero()">隱藏庫存 0</button>
     <button class="btn" onclick="exportExcel()">匯出稽核表</button>
     <button class="btn" id="toggleZeroBtn" onclick="toggleHideZero()">隱藏庫存 0</button>
-    <button class="btn" onclick="exportExcel()">匯出稽核表</button>
     <button class="btn btn-primary" onclick="openItemModal()">＋ 新增品項</button>
   </div>
   <div class="summary-line" id="summaryLine"></div>
@@ -224,7 +217,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   </div>
 </div>
 
-<!-- 使用記錄 -->
+<!-- 贈品記錄 -->
 <div class="page" id="page-log">
   <div class="toolbar">
     <input type="text" id="logSearch" placeholder="搜尋品項..." oninput="renderLog()"/>
@@ -394,26 +387,24 @@ tbody td{padding:9px 12px;vertical-align:middle}
 </div>
 
 
-<!-- 批次匯入 -->
 <div class="page" id="page-import">
   <div class="import-card">
     <h3>批次新增購入 <span class="badge-safe">不覆蓋原資料</span></h3>
     <p class="desc">上傳 Excel（.xlsx）或 CSV，系統解析後預覽，確認後新增到現有庫存。<br>
     欄位順序：<strong>年份 ／ 來源 ／ 品項名稱 ／ 類別 ／ 單價 ／ 數量 ／ 庫存地點（選填）</strong></p>
-    <div class="dropzone" id="importDropzone"
-      onclick="document.getElementById('importFileInput').click()"
-      ondragover="onImportDragOver(event)" ondragleave="onImportDragLeave(event)" ondrop="onImportDrop(event)">
-      <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onImportFileChange(event)"/>
-      <span id="importDropLabel">點擊或拖曳上傳 Excel / CSV 檔案</span>
+    <div class="dropzone" id="importDropzone" onclick="document.getElementById('impFileInput').click()"
+      ondragover="onImpDragOver(event)" ondragleave="onImpDragLeave()" ondrop="onImpDrop(event)">
+      <input type="file" id="impFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onImpFileChange(event)"/>
+      <span id="impDropLabel">點擊或拖曳上傳 Excel / CSV 檔案</span>
     </div>
-    <div class="preview-wrap" id="importPreviewWrap" style="display:none">
-      <table><thead id="importPreviewHead"></thead><tbody id="importPreviewBody"></tbody></table>
+    <div class="imp-preview" id="impPreview" style="display:none">
+      <table><thead id="impHead"></thead><tbody id="impBody"></tbody></table>
     </div>
-    <div id="importActions" style="display:none;margin-top:14px">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="importSummary"></div>
-      <button class="btn btn-success" id="importConfirmBtn" onclick="runBatchImport()" style="height:36px;width:auto;padding:0 20px">確認新增到庫存</button>
+    <div id="impActions" style="display:none;margin-top:12px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="impSummary"></div>
+      <button class="btn btn-success" id="impConfirmBtn" onclick="runBatchImport()" style="height:36px;width:auto;padding:0 20px">確認新增到庫存</button>
     </div>
-    <div class="import-log" id="importLog"></div>
+    <div class="imp-log" id="impLog"></div>
   </div>
 </div>
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -461,7 +452,7 @@ let editingItemId=null,currentLogType='in',currentUseType='event',pendingPhoto='
 function totalQty(i){return(i.locations||[]).reduce((s,l)=>s+Number(l.qty||0),0);}
 function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
 function fmtP(p){return Number(p).toLocaleString('zh-TW',{minimumFractionDigits:p%1===0?0:1,maximumFractionDigits:1});}
-function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 /* SYNC */
@@ -482,11 +473,13 @@ function parseLocs(raw){
   try{const p=JSON.parse(raw);return Array.isArray(p)?p.map(l=>({name:String(l.name||''),qty:Number(l.qty)||0})):[{name:'其他',qty:Number(raw)||0}];}
   catch(e){return[{name:'其他',qty:Number(raw)||0}];}
 }
+function saveItems(){_push();}
+function saveLogs(){_push();}
 
+/* CACHE */
 const CACHE_KEY='rd_cache_v1';
-function applyData(data){
-  const raw=data.items||[];
-  if(!raw.length)return false;
+function _applyData(data){
+  const raw=data.items||[];if(!raw.length)return false;
   items=raw.map(i=>({...i,id:Number(i.id),year:Number(i.year)||'',price:Number(i.price),locations:parseLocs(i.locations)}));
   logs=(data.logs||[]).map(l=>({...l,id:Number(l.id),itemId:Number(l.itemId),qty:Number(l.qty),price:Number(l.price)}));
   const mm=Object.fromEntries((data.meta||[]).map(m=>[m.key,Number(m.value)]));
@@ -494,99 +487,82 @@ function applyData(data){
   nextLogId=mm.nextLogId||(logs.length?Math.max(...logs.map(l=>l.id))+1:1);
   return true;
 }
-function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId}}));}catch(e){}}
-function loadCache(){
-  try{
-    const raw=localStorage.getItem(CACHE_KEY);if(!raw)return false;
-    const d=JSON.parse(raw);if(!d.items||!d.items.length)return false;
-    return applyData(d);
-  }catch(e){return false;}
-}
+function _saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify({items:items.map(i=>({...i,locations:JSON.stringify(i.locations)})),logs,meta:{nextItemId,nextLogId}}));}catch(e){}}
+function _loadCache(){try{const r=localStorage.getItem(CACHE_KEY);if(!r)return false;const d=JSON.parse(r);return _applyData(d);}catch(e){return false;}}
 
 /* LOCK */
-const USER_ID='user_'+Math.random().toString(36).slice(2,8);
-let lockCheckTimer=null,iAmLocked=false;
-function promptUserName(){let n=localStorage.getItem('rd_username');if(!n){n=prompt('請輸入你的名稱（用於鎖定識別）：')||'匿名';localStorage.setItem('rd_username',n);}return n;}
-async function acquireLock(){
-  const name=promptUserName();
+const USER_ID='u'+Math.random().toString(36).slice(2,8);
+let _lockTimer=null,iAmLocked=false;
+function _myName(){let n=localStorage.getItem('rd_uname');if(!n){n=prompt('請輸入你的名稱（用於鎖定識別）：')||'匿名';localStorage.setItem('rd_uname',n);}return n;}
+async function _acquireLock(){
+  const name=_myName();
   try{
-    const r=await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'acquireLock',userId:USER_ID,userName:name})});
-    const d=JSON.parse(await r.text());
-    if(d.ok){iAmLocked=true;showLockBanner(true,name);if(lockCheckTimer)clearInterval(lockCheckTimer);lockCheckTimer=setInterval(renewLock,60000);return true;}
-    else{const ago=d.lockedAt?Math.round((Date.now()-Number(d.lockedAt))/60000):'?';alert(`目前由「${d.lockedBy}」鎖定中（${ago} 分鐘前），無法操作。`);return false;}
+    const d=JSON.parse(await(await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'acquireLock',userId:USER_ID,userName:name})})).text());
+    if(d.ok){iAmLocked=true;_showBanner(true,name);if(_lockTimer)clearInterval(_lockTimer);_lockTimer=setInterval(()=>{if(iAmLocked)fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'acquireLock',userId:USER_ID,userName:name})}).catch(()=>{});},60000);return true;}
+    const ago=d.lockedAt?Math.round((Date.now()-Number(d.lockedAt))/60000):'?';
+    alert(`目前由「${d.lockedBy}」鎖定中（${ago} 分鐘前），請稍後再試。`);return false;
   }catch(e){return true;}
 }
-async function renewLock(){if(!iAmLocked)return;const name=localStorage.getItem('rd_username')||'匿名';try{await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'acquireLock',userId:USER_ID,userName:name})});}catch(e){}}
-async function releaseLock(){
+async function _releaseLock(){
   if(!iAmLocked)return;iAmLocked=false;
-  if(lockCheckTimer){clearInterval(lockCheckTimer);lockCheckTimer=null;}
-  showLockBanner(false);
-  try{await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'releaseLock',userId:USER_ID})});}catch(e){}
+  if(_lockTimer){clearInterval(_lockTimer);_lockTimer=null;}
+  _showBanner(false);
+  try{fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'releaseLock',userId:USER_ID})});}catch(e){}
 }
 async function forceReleaseLock(){
   if(!confirm('確定要強制解除鎖定？'))return;
-  iAmLocked=false;if(lockCheckTimer){clearInterval(lockCheckTimer);lockCheckTimer=null;}showLockBanner(false);
-  try{await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'releaseLock',userId:'force'})});}catch(e){}
+  iAmLocked=false;if(_lockTimer){clearInterval(_lockTimer);_lockTimer=null;}_showBanner(false);
+  try{fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'releaseLock',userId:'force'})});}catch(e){}
 }
-async function checkLock(){
+async function _checkLock(){
   try{
-    const d=JSON.parse(await (await fetch(API+'?action=getLock',{redirect:'follow'})).text());
-    if(d.locked&&d.userId!==USER_ID){const ago=d.lockedAt?Math.round((Date.now()-Number(d.lockedAt))/60000):'?';showLockBanner(false,d.userName,ago);}
-    else if(!d.locked&&!iAmLocked)showLockBanner(false);
+    const d=JSON.parse(await(await fetch(API+'?action=getLock',{redirect:'follow'})).text());
+    if(d.locked&&d.userId!==USER_ID){const ago=d.lockedAt?Math.round((Date.now()-Number(d.lockedAt))/60000):'?';_showBanner(false,d.userName,ago);}
+    else if(!d.locked&&!iAmLocked)_showBanner(false);
   }catch(e){}
 }
-function showLockBanner(mine,name,ago){
+function _showBanner(mine,name,ago){
   const b=document.getElementById('lockBanner'),m=document.getElementById('lockMsg'),a=document.getElementById('lockAction');
-  if(mine){b.style.background='#0F6E56';m.textContent=`🔒 你正在編輯中（${name}）`;a.textContent='解除鎖定';a.onclick=()=>releaseLock();b.classList.add('show');}
-  else if(name){b.style.background='#A32D2D';m.textContent=`🔒 「${name}」鎖定中（${ago} 分鐘前）`;a.textContent='強制解除';a.onclick=()=>forceReleaseLock();b.classList.add('show');}
-  else{b.classList.remove('show');}
+  if(mine){b.style.background='#0F6E56';m.textContent=`🔒 你正在編輯中（${name}）`;a.textContent='解除鎖定';a.onclick=()=>_releaseLock();b.classList.add('show');}
+  else if(name){b.style.background='#A32D2D';m.textContent=`🔒「${name}」鎖定中（${ago||'?'} 分鐘前）`;a.textContent='強制解除';a.onclick=()=>forceReleaseLock();b.classList.add('show');}
+  else b.classList.remove('show');
 }
-window.addEventListener('beforeunload',()=>releaseLock());
+window.addEventListener('beforeunload',()=>_releaseLock());
 
-let _pollTimer=null;
-const POLL_INTERVAL=60000;
-async function loadFromSheets(forceRefresh){
-  const hasCached=loadCache();
-  if(hasCached){buildLocFilter();renderInventory();if(document.getElementById('page-log').classList.contains('active'))renderLog();if(!forceRefresh)setStatus('載入中...','var(--text2)');}
-  if(!forceRefresh&&hasCached){_syncFromSheets();}else{setStatus('同步中...','var(--text2)');await _syncFromSheets();}
-  _startPolling();
-}
-async function _syncFromSheets(){
-  try{
-    const data=await apiGet();
-    if(!(data.items||[]).length){items=DEFAULT_ITEMS;logs=[];nextItemId=30;nextLogId=1;await pushAll();}
-    else{applyData(data);}
-    saveCache();
-    setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
-    buildLocFilter();renderInventory();if(document.getElementById('page-log').classList.contains('active'))renderLog();
-  }catch(e){setStatus('連線失敗，顯示快取','#A32D2D');}
-}
-function _startPolling(){
-  if(_pollTimer)clearInterval(_pollTimer);
-  _pollTimer=setInterval(()=>{if(!isSyncing){_syncFromSheets();checkLock();}},POLL_INTERVAL);
-}
-async function pushAll(){
+/* PUSH */
+async function _push(){
   if(isSyncing)return;isSyncing=true;setStatus('儲存中...','#854F0B');
-  const name=promptUserName();
-  try{
-    const lr=JSON.parse(await (await fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'acquireLock',userId:USER_ID,userName:name})})).text());
-    if(!lr.ok){isSyncing=false;const ago=lr.lockedAt?Math.round((Date.now()-Number(lr.lockedAt))/60000):'?';alert(`「${lr.lockedBy}」鎖定中（${ago} 分鐘前），無法儲存。`);return;}
-    iAmLocked=true;showLockBanner(true,name);
-  }catch(e){}
+  const ok=await _acquireLock();
+  if(!ok){isSyncing=false;return;}
   try{
     const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
-    saveCache();buildLocFilter();renderInventory();
+    _saveCache();buildLocFilter();renderInventory();
     if(document.getElementById('page-log').classList.contains('active'))renderLog();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
   }catch(e){setStatus('儲存失敗，請重試','#A32D2D');}
-  await releaseLock();isSyncing=false;
+  await _releaseLock();isSyncing=false;
 }
-function saveItems(){pushAll();}
-function saveLogs(){pushAll();}
 
+/* LOAD / POLL */
+let _pollTimer=null;
+async function loadFromSheets(force){
+  const cached=_loadCache();
+  if(cached){buildLocFilter();renderInventory();if(document.getElementById('page-log').classList.contains('active'))renderLog();setStatus(force?'同步中...':'載入中...','var(--text2)');}
+  else setStatus('載入中...','var(--text2)');
+  try{
+    const data=await apiGet();
+    if(!(data.items||[]).length){items=DEFAULT_ITEMS;logs=[];nextItemId=30;nextLogId=1;await _push();}
+    else _applyData(data);
+    _saveCache();buildLocFilter();renderInventory();
+    if(document.getElementById('page-log').classList.contains('active'))renderLog();
+    setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
+  }catch(e){if(!cached){items=DEFAULT_ITEMS;}setStatus('連線失敗，顯示快取','#A32D2D');}
+  if(_pollTimer)clearInterval(_pollTimer);
+  _pollTimer=setInterval(()=>{if(!isSyncing){apiGet().then(d=>{_applyData(d);_saveCache();buildLocFilter();renderInventory();if(document.getElementById('page-log').classList.contains('active'))renderLog();setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');}).catch(()=>{});_checkLock();}},60000);
+}
 
 /* NAV */
 document.querySelectorAll('.nav-tab').forEach(tab=>{
@@ -751,14 +727,7 @@ function toggleHideZero(){
   btn.textContent=hideZero?'顯示庫存 0':'隱藏庫存 0';
   renderInventory();
 }
-function toggleHideZero(){
-  hideZero=!hideZero;
-  const btn=document.getElementById('toggleZeroBtn');
-  btn.style.background=hideZero?'var(--text)':'var(--bg)';
-  btn.style.color=hideZero?'var(--bg)':'var(--text)';
-  btn.textContent=hideZero?'顯示庫存 0':'隱藏庫存 0';
-  renderInventory();
-}
+
 function deleteItem(id){
   if(!confirm('確定要刪除此品項？'))return;
   items=items.filter(i=>i.id!==id);buildLocFilter();saveItems();renderInventory();
@@ -795,8 +764,7 @@ function fillLogFields(){
   }
 }
 function openLogModal(type,itemId){
-  editingLogId=null;
-  currentLogType=type;
+  editingLogId=null;currentLogType=type;
   document.getElementById('logModalTitle').textContent=type==='in'?'記錄贈品入庫':'記錄贈品使用';
   document.getElementById('lDate').value=today();document.getElementById('lQty').value=1;document.getElementById('lNote').value='';
   ['lDocNo','lEventName','lManager','lClient'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -820,10 +788,10 @@ function editLog(id){
   if(l.manager)document.getElementById('lManager').value=l.manager;
   if(l.client)document.getElementById('lClient').value=l.client;
   populateLogSelect();document.getElementById('lItem').value=l.itemId;
-  const locSel=document.getElementById('lLoc');locSel.innerHTML='';
-  const item=items.find(i=>i.id===l.itemId);
-  if(item&&item.locations){item.locations.filter(x=>x.name).forEach(x=>{const o=document.createElement('option');o.value=x.name;o.textContent=`${x.name}（${x.qty}件）`;locSel.appendChild(o);});}
-  if(l.locName){if(!locSel.querySelector(`option[value="${l.locName}"]`)){const o=document.createElement('option');o.value=l.locName;o.textContent=l.locName;locSel.appendChild(o);}locSel.value=l.locName;}
+  const sel=document.getElementById('lLoc');sel.innerHTML='';
+  const itm=items.find(i=>i.id===l.itemId);
+  if(itm)itm.locations.filter(x=>x.name).forEach(x=>{const o=document.createElement('option');o.value=x.name;o.textContent=x.name+'（'+x.qty+'件）';sel.appendChild(o);});
+  if(l.locName){if(!sel.querySelector('option[value="'+l.locName+'"]')){const o=document.createElement('option');o.value=l.locName;o.textContent=l.locName;sel.appendChild(o);}sel.value=l.locName;}
   document.getElementById('logModal').classList.add('open');
 }
 function quickLog(id,type){openLogModal(type,id);}
@@ -853,14 +821,15 @@ function saveLog(){
   if(editingLogId){
     const l=logs.find(x=>x.id===editingLogId);
     if(l){
-      const item2=items.find(i=>i.id===l.itemId);
-      if(item2){
-        const oldLoc=item2.locations.find(x=>x.name===l.locName);
+      const itm=items.find(i=>i.id===l.itemId);
+      if(itm){
+        const oldLoc=itm.locations.find(x=>x.name===l.locName);
         if(oldLoc){if(l.type==='in')oldLoc.qty-=l.qty;else oldLoc.qty+=l.qty;}
         const newLocName=locName||l.locName;
-        let newLoc=item2.locations.find(x=>x.name===newLocName);
-        if(!newLoc){item2.locations.push({name:newLocName,qty:0});newLoc=item2.locations[item2.locations.length-1];}
-        if(l.type==='in')newLoc.qty+=qty; else{if(newLoc.qty<qty){alert('庫存不足，無法修改');return;}newLoc.qty-=qty;}
+        let newLoc=itm.locations.find(x=>x.name===newLocName);
+        if(!newLoc){itm.locations.push({name:newLocName,qty:0});newLoc=itm.locations[itm.locations.length-1];}
+        if(l.type==='in')newLoc.qty+=qty;
+        else{if(newLoc.qty<qty){alert('庫存不足，無法修改');return;}newLoc.qty-=qty;}
         l.locName=newLocName;
       }
       l.date=date;l.qty=qty;l.price=price;l.note=note;
@@ -884,12 +853,7 @@ function renderLog(){
     const txt=(String(l.year||'')+l.src+l.name+(l.docNo||'')+(l.eventName||'')+(l.manager||'')+(l.client||'')).toLowerCase();
     return txt.includes(q)&&(type===''||l.type===type||(type==='event'&&l.useType==='event')||(type==='vip'&&l.useType==='vip'));
   });
-  data.sort((a,b)=>{
-    const da=String(a.date||'').slice(0,7);
-    const db=String(b.date||'').slice(0,7);
-    if(da!==db)return sort==='newest'?db.localeCompare(da):da.localeCompare(db);
-    return sort==='newest'?b.id-a.id:a.id-b.id;
-  });
+  data.sort((a,b)=>{const da=String(a.date||'').slice(0,7),db=String(b.date||'').slice(0,7);if(da!==db)return sort==='newest'?db.localeCompare(da):da.localeCompare(db);return sort==='newest'?b.id-a.id:a.id-b.id;});
   const ti=logs.filter(l=>l.type==='in').reduce((s,l)=>s+l.qty,0);
   const to=logs.filter(l=>l.type==='out').reduce((s,l)=>s+l.qty,0);
   document.getElementById('logSummaryLine').innerHTML=`共 <strong>${logs.length}</strong> 筆 · 購入 <strong>${ti}</strong> 件 · 使用 <strong>${to}</strong> 件`;
@@ -909,7 +873,7 @@ function renderLog(){
       <td>NT$ ${fmtP(l.price)}</td>
       <td>NT$ ${fmtN(l.price*l.qty)}</td>
       <td style="font-size:12px;color:var(--text2);line-height:1.6">${detail}${detail&&l.note?'<br>':''}${l.note?esc(l.note):''}</td>
-      <td><div class="acts"><button class="act-btn" onclick="editLog(${l.id})">編輯</button><button class="act-btn del" onclick="deleteLog(${l.id})">刪除</button></div></td>
+      <td><button class="act-btn del" onclick="deleteLog(${l.id})">刪除</button></td>
     </tr>`;
   }).join('');
 }
@@ -1083,79 +1047,38 @@ function exportExcel(){
   XLSX.writeFile(wb,`鎔德贈品稽核表_${date}.xlsx`);
 }
 
-function exportExcel(){
-  const wb=XLSX.utils.book_new();
-  const invRows=[['年份','來源','品項名稱','類別','單價（NT$）','庫存地點','數量','庫存總值（NT$）']];
-  items.forEach(i=>{
-    const locs=(i.locations||[]).filter(l=>l.qty>0);
-    if(!locs.length){invRows.push([i.year||'',i.src,i.name,i.cat,i.price,'',0,0]);}
-    else{locs.forEach((l,idx)=>{invRows.push(idx===0?[i.year||'',i.src,i.name,i.cat,i.price,l.name,l.qty,Math.round(i.price*l.qty)]:['','','','','',l.name,l.qty,Math.round(i.price*l.qty)]);});}
+/* IMPORT */
+let _impRows=[];
+function onImpDragOver(e){e.preventDefault();document.getElementById('importDropzone').classList.add('over');}
+function onImpDragLeave(){document.getElementById('importDropzone').classList.remove('over');}
+function onImpDrop(e){e.preventDefault();document.getElementById('importDropzone').classList.remove('over');if(e.dataTransfer.files[0])_impProcess(e.dataTransfer.files[0]);}
+function onImpFileChange(e){if(e.target.files[0])_impProcess(e.target.files[0]);}
+function _impProcess(file){
+  document.getElementById('impDropLabel').textContent='📄 '+file.name;
+  const r=new FileReader();
+  r.onload=ev=>{const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];_impParse(XLSX.utils.sheet_to_json(ws,{header:1,defval:''}));};
+  r.readAsArrayBuffer(file);
+}
+function _impParse(rows){
+  _impRows=[];
+  rows.forEach(r=>{
+    const name=String(r[2]||'').trim();
+    if(!name||name==='品項名稱'||name==='name')return;
+    const price=Number(r[4]),qty=Number(r[5]),errs=[];
+    if(!name)errs.push('缺名稱');if(isNaN(price)||price<0)errs.push('單價異常');if(isNaN(qty)||qty<0)errs.push('數量異常');
+    _impRows.push({year:r[0]?Number(r[0]):'',src:String(r[1]||'').trim(),name,cat:['財務列管','一般贈品'].includes(String(r[3]||'').trim())?String(r[3]).trim():'一般贈品',price:price||0,qty:qty||0,loc:String(r[6]||'其他').trim()||'其他',_err:errs});
   });
-  const ws1=XLSX.utils.aoa_to_sheet(invRows);
-  ws1['!cols']=[{wch:8},{wch:16},{wch:24},{wch:10},{wch:12},{wch:12},{wch:8},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws1,'庫存總覽');
-  const logRows=[['年月','類型','品項名稱','庫存地點','數量','單價（NT$）','金額（NT$）','發文字號','活動名稱','主管','客戶','備註']];
-  [...logs].sort((a,b)=>a.id-b.id).forEach(l=>{
-    const type=l.type==='in'?'購入':l.useType==='event'?'活動使用':'公關使用';
-    logRows.push([String(l.date||'').slice(0,7),type,l.name,l.locName||'',l.type==='in'?l.qty:-l.qty,l.price,Math.round(l.price*l.qty),l.docNo||'',l.eventName||'',l.manager||'',l.client||'',l.note||'']);
-  });
-  const ws2=XLSX.utils.aoa_to_sheet(logRows);
-  ws2['!cols']=[{wch:8},{wch:10},{wch:24},{wch:12},{wch:6},{wch:12},{wch:12},{wch:18},{wch:20},{wch:10},{wch:10},{wch:16}];
-  XLSX.utils.book_append_sheet(wb,ws2,'使用記錄');
-  XLSX.writeFile(wb,`鎔德贈品稽核表_${today()}.xlsx`);
-}
-
-let importParsedRows=[];
-function onImportDragOver(e){e.preventDefault();document.getElementById('importDropzone').classList.add('over');}
-function onImportDragLeave(){document.getElementById('importDropzone').classList.remove('over');}
-function onImportDrop(e){e.preventDefault();document.getElementById('importDropzone').classList.remove('over');const file=e.dataTransfer.files[0];if(file)processImportFile(file);}
-function onImportFileChange(e){const file=e.target.files[0];if(file)processImportFile(file);}
-function processImportFile(file){
-  document.getElementById('importDropLabel').textContent='📄 '+file.name;
-  const reader=new FileReader();
-  reader.onload=ev=>{const data=new Uint8Array(ev.target.result);const wb=XLSX.read(data,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];parseImportRows(XLSX.utils.sheet_to_json(ws,{header:1,defval:''}));};
-  reader.readAsArrayBuffer(file);
-}
-function parseImportRows(rows){
-  importParsedRows=[];
-  for(let i=0;i<rows.length;i++){
-    const r=rows[i];const name=String(r[2]||'').trim();
-    if(!name||name==='品項名稱'||name==='name')continue;
-    const price=Number(r[4]),qty=Number(r[5]);
-    const errs=[];
-    if(!name)errs.push('缺品項名稱');if(isNaN(price)||price<0)errs.push('單價異常');if(isNaN(qty)||qty<0)errs.push('數量異常');
-    importParsedRows.push({year:r[0]?Number(r[0]):'',src:String(r[1]||'').trim(),name,cat:['財務列管','一般贈品'].includes(String(r[3]||'').trim())?String(r[3]).trim():'一般贈品',price:price||0,qty:qty||0,locName:String(r[6]||'其他').trim()||'其他',_err:errs});
-  }
-  renderImportPreview();
-}
-function renderImportPreview(){
-  const wrap=document.getElementById('importPreviewWrap'),head=document.getElementById('importPreviewHead'),body=document.getElementById('importPreviewBody'),actions=document.getElementById('importActions');
-  if(!importParsedRows.length){wrap.style.display='none';actions.style.display='none';return;}
+  const wrap=document.getElementById('impPreview'),head=document.getElementById('impHead'),body=document.getElementById('impBody'),actions=document.getElementById('impActions');
+  if(!_impRows.length){wrap.style.display='none';actions.style.display='none';return;}
   wrap.style.display='block';
   head.innerHTML='<tr><th>年份</th><th>來源</th><th>品項名稱</th><th>類別</th><th>單價</th><th>數量</th><th>地點</th><th>狀態</th></tr>';
-  body.innerHTML=importParsedRows.map(r=>`<tr><td>${esc(String(r.year||''))}</td><td>${esc(r.src)}</td><td>${esc(r.name)}</td><td>${esc(r.cat)}</td><td>${r.price}</td><td>${r.qty}</td><td>${esc(r.locName)}</td><td>${r._err.length?`<span class="err-cell">⚠ ${r._err.join('、')}</span>`:'<span style="color:#27500A">✓</span>'}</td></tr>`).join('');
-  const valid=importParsedRows.filter(r=>!r._err.length).length;
-  document.getElementById('importSummary').textContent=`共讀取 ${importParsedRows.length} 筆，${valid} 筆可匯入`;
+  body.innerHTML=_impRows.map(r=>`<tr><td>${esc(String(r.year||''))}</td><td>${esc(r.src)}</td><td>${esc(r.name)}</td><td>${esc(r.cat)}</td><td>${r.price}</td><td>${r.qty}</td><td>${esc(r.loc)}</td><td>${r._err.length?'<span class="err-cell">⚠ '+r._err.join('、')+'</span>':'<span style="color:#27500A">✓</span>'}</td></tr>`).join('');
+  const valid=_impRows.filter(r=>!r._err.length).length;
+  document.getElementById('impSummary').textContent=`共 ${_impRows.length} 筆，${valid} 筆可匯入`;
   actions.style.display='block';
 }
-function ilogLine(msg,cls){const el=document.getElementById('importLog');el.classList.add('show');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);}
-function clearILog(){const el=document.getElementById('importLog');el.innerHTML='';el.classList.remove('show');}
-async function runBatchImport(){
-  const valid=importParsedRows.filter(r=>!r._err.length);
-  if(!valid.length){alert('沒有可匯入的資料');return;}
-  clearILog();document.getElementById('importConfirmBtn').disabled=true;
-  ilogLine('⏳ 新增中...');
-  valid.forEach(r=>{items.push({id:nextItemId++,year:r.year,src:r.src,name:r.name,cat:r.cat,price:r.price,locations:[{name:r.locName,qty:r.qty}],note:'',photo:''});});
-  await saveItems();
-  ilogLine(`🎉 完成！新增 ${valid.length} 筆。`,'iok');
-  importParsedRows=[];
-  document.getElementById('importPreviewWrap').style.display='none';
-  document.getElementById('importActions').style.display='none';
-  document.getElementById('importDropLabel').textContent='點擊或拖曳上傳 Excel / CSV 檔案';
-  document.getElementById('importFileInput').value='';
-  document.getElementById('importConfirmBtn').disabled=false;
-}
-document.body.insertAdjacentHTML('beforeend','<datalist id="locSuggestions">'+DEFAULT_LOCS.map(l=>`<option value="${esc(l)}">`).join('')+'</datalist>');
+function _impLog(msg,cls){const el=document.getElementById('impLog');el.classList.add('show');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);}
+
 loadFromSheets();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
