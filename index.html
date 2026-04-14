@@ -557,7 +557,7 @@ async function _push(){
   isSyncing=true;
   setStatus('儲存中...','#854F0B');
   try{
-    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations),photo:''}));
+    const toSave=items.map(i=>({...i,locations:JSON.stringify(i.locations)}));
     await apiPost({action:'saveItems',items:toSave});
     await apiPost({action:'saveLogs',logs});
     await apiPost({action:'saveMeta',meta:{nextItemId,nextLogId}});
