@@ -670,10 +670,10 @@ function driveUrlToImg(url){
   if(!url) return '';
   // 格式1: https://drive.google.com/file/d/FILE_ID/view?...
   let m = url.match(/\/file\/d\/([^\/\?]+)/);
-  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w200';
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
   // 格式2: https://drive.google.com/open?id=FILE_ID
   m = url.match(/[?&]id=([^&]+)/);
-  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w200';
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
   // 已經是圖片網址
   if(url.startsWith('http')) return url;
   return '';
@@ -690,7 +690,12 @@ function _oldQuickPhoto(id){
   inp.onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{const it=items.find(x=>x.id===id);if(it){it.photo=ev.target.result;saveItems();renderInventory();}};r.readAsDataURL(file);};
   inp.click();
 }
-function openLightbox(id){const it=items.find(i=>i.id===id);if(!it||!it.photo)return;document.getElementById('lightboxImg').src=it.photo;document.getElementById('lightbox').classList.add('open');}
+function openLightbox(id){
+  const it=items.find(i=>i.id===id);if(!it||!it.photo)return;
+  const bigUrl=it.photo.replace(/sz=w\d+/,'sz=w1200').replace(/thumbnail\?/,'uc?export=view&');
+  document.getElementById('lightboxImg').src=bigUrl||it.photo;
+  document.getElementById('lightbox').classList.add('open');
+}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
 
 /* LOC EDITOR */
