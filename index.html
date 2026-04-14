@@ -164,6 +164,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
   </div>
   <div class="nav-right">
     <span id="syncStatus" style="font-size:12px;color:var(--text2)">載入中...</span>
+    <span id="pendingDot" style="display:none;font-size:12px;color:#854F0B">● 未儲存</span>
+    <button class="btn btn-sm btn-success" id="saveBtn" onclick="manualSave()" style="display:none">儲存</button>
     <button class="btn btn-sm" onclick="loadFromSheets(true)">重新整理</button>
   </div>
 </nav>
@@ -471,8 +473,22 @@ function parseLocs(raw){
   try{const p=JSON.parse(raw);return Array.isArray(p)?p.map(l=>({name:String(l.name||''),qty:Number(l.qty)||0})):[{name:'其他',qty:Number(raw)||0}];}
   catch(e){return[{name:'其他',qty:Number(raw)||0}];}
 }
-function saveItems(){_push();}
-function saveLogs(){_push();}
+function saveItems(){_markPending();}
+function saveLogs(){_markPending();}
+function _markPending(){
+  buildLocFilter();renderInventory();
+  if(document.getElementById('page-log').classList.contains('active'))renderLog();
+  document.getElementById('pendingDot').style.display='';
+  document.getElementById('saveBtn').style.display='';
+  setStatus('有未儲存的變更','#854F0B');
+}
+async function manualSave(){
+  document.getElementById('saveBtn').disabled=true;
+  await _push();
+  document.getElementById('pendingDot').style.display='none';
+  document.getElementById('saveBtn').style.display='none';
+  document.getElementById('saveBtn').disabled=false;
+}
 
 /* CACHE */
 const CACHE_KEY='rd_cache_v1';
@@ -512,20 +528,19 @@ async function forceReleaseLock(){
   iAmLocked=false;if(_lockTimer){clearInterval(_lockTimer);_lockTimer=null;}_showBanner(false);
   try{fetch(API,{method:'POST',redirect:'follow',body:JSON.stringify({action:'releaseLock',userId:'force'})});}catch(e){}
 }
-async function _checkLock(){
-  try{
-    const d=JSON.parse(await(await fetch(API+'?action=getLock',{redirect:'follow'})).text());
-    if(d.locked&&d.userId!==USER_ID){const ago=d.lockedAt?Math.round((Date.now()-Number(d.lockedAt))/60000):'?';_showBanner(false,d.userName,ago);}
-    else if(!d.locked&&!iAmLocked)_showBanner(false);
-  }catch(e){}
-}
+
 function _showBanner(mine,name,ago){
   const b=document.getElementById('lockBanner'),m=document.getElementById('lockMsg'),a=document.getElementById('lockAction');
   if(mine){b.style.background='#0F6E56';m.textContent=`🔒 你正在編輯中（${name}）`;a.textContent='解除鎖定';a.onclick=()=>_releaseLock();b.classList.add('show');}
   else if(name){b.style.background='#A32D2D';m.textContent=`🔒「${name}」鎖定中（${ago||'?'} 分鐘前）`;a.textContent='強制解除';a.onclick=()=>forceReleaseLock();b.classList.add('show');}
   else b.classList.remove('show');
 }
-window.addEventListener('beforeunload',()=>_releaseLock());
+window.addEventListener('beforeunload',(e)=>{
+  _releaseLock();
+  if(document.getElementById('saveBtn').style.display!=='none'){
+    e.preventDefault();e.returnValue='有未儲存的資料，確定要離開？';
+  }
+});
 
 /* PUSH */
 async function _push(){
@@ -545,7 +560,6 @@ async function _push(){
 }
 
 /* LOAD / POLL */
-let _pollTimer=null;
 async function loadFromSheets(force){
   const cached=_loadCache();
   if(cached){buildLocFilter();renderInventory();if(document.getElementById('page-log').classList.contains('active'))renderLog();setStatus(force?'同步中...':'載入中...','var(--text2)');}
@@ -558,8 +572,7 @@ async function loadFromSheets(force){
     if(document.getElementById('page-log').classList.contains('active'))renderLog();
     setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');
   }catch(e){if(!cached){items=DEFAULT_ITEMS;}setStatus('連線失敗，顯示快取','#A32D2D');}
-  if(_pollTimer)clearInterval(_pollTimer);
-  _pollTimer=setInterval(()=>{if(!isSyncing){apiGet().then(d=>{_applyData(d);_saveCache();buildLocFilter();renderInventory();if(document.getElementById('page-log').classList.contains('active'))renderLog();setStatus('已同步 '+new Date().toLocaleTimeString('zh-TW'),'#27500A');}).catch(()=>{});_checkLock();}},60000);
+
 }
 
 /* NAV */
