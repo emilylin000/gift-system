@@ -14,14 +14,11 @@
   --green-bg:#EAF3DE;--green-text:#27500A;
   --amber-bg:#FAEEDA;--amber-text:#633806;
   --red-bg:#FCEBEB;--red-text:#A32D2D;
-  --radius:8px;--radius-lg:12px;
-  --nav-h:49px;
+  --radius:8px;--radius-lg:12px;--nav-h:49px;
 }
-
-/* ── Base ─────────────────────────────────────── */
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
 
-/* ── Nav ──────────────────────────────────────── */
+/* Nav */
 .nav{background:var(--bg);border-bottom:.5px solid var(--border);padding:0 24px;display:flex;align-items:center;position:sticky;top:0;z-index:50;height:var(--nav-h)}
 .nav-brand{font-size:15px;font-weight:500;margin-right:24px;white-space:nowrap}
 .nav-tabs{display:flex}
@@ -30,18 +27,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
 
-/* ── Pages ────────────────────────────────────── */
+/* Pages */
 .page{display:none;padding:24px;max-width:1300px;margin:0 auto}
 .page.active{display:block}
 
-/* ── Stats ────────────────────────────────────── */
+/* Stats */
 .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
 .stat-card{background:var(--bg);border-radius:var(--radius);padding:14px 16px;border:.5px solid var(--border)}
 .stat-label{font-size:11px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
 .stat-value{font-size:22px;font-weight:500}
 .stat-unit{font-size:13px;font-weight:400;color:var(--text2)}
 
-/* ── Toolbar ──────────────────────────────────── */
+/* Toolbar */
 .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .toolbar input[type=text]{flex:1;min-width:160px;height:34px;padding:0 10px;border:.5px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text);outline:none}
 .toolbar input[type=text]:focus{border-color:#666}
@@ -57,7 +54,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-warn:hover{opacity:.85}
 .btn-sm{height:28px;padding:0 10px;font-size:12px}
 
-/* ── Table ────────────────────────────────────── */
+/* Table */
 .table-wrap{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead th{padding:9px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--text2);background:var(--bg2);border-bottom:.5px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
@@ -67,13 +64,13 @@ tbody tr:hover{background:var(--bg2)}
 tbody td{padding:9px 12px;vertical-align:middle}
 .empty-row td{text-align:center;padding:40px;color:var(--text3)}
 
-/* ── Photo ────────────────────────────────────── */
+/* Photo */
 .photo-thumb{width:48px;height:48px;border-radius:var(--radius);object-fit:cover;border:.5px solid var(--border);cursor:pointer}
 .photo-placeholder{width:48px;height:48px;border-radius:var(--radius);background:var(--bg2);border:.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:18px}
 .photo-placeholder:hover{background:var(--bg3);border-color:#999}
 .photo-preview{width:100%;max-height:150px;object-fit:contain;border-radius:var(--radius);margin-top:8px;border:.5px solid var(--border)}
 
-/* ── Badges ───────────────────────────────────── */
+/* Badges */
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500;white-space:nowrap}
 .badge-fin{background:var(--blue-bg);color:var(--blue-text)}
 .badge-gen{background:var(--green-bg);color:var(--green-text)}
@@ -81,14 +78,14 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .log-badge-event{background:var(--blue-bg);color:var(--blue-text)}
 .log-badge-vip{background:#FBEAF0;color:#72243E}
 
-/* ── Qty colors ───────────────────────────────── */
+/* Qty colors */
 .qty-zero{color:var(--text3)!important;font-weight:400!important}
 .qty-low{color:#A32D2D;font-weight:500}
 .qty-mid{color:#854F0B;font-weight:500}
 .qty-ok{color:#27500A;font-weight:500}
 .row-zero{opacity:.45}
 
-/* ── Action buttons ───────────────────────────── */
+/* Action buttons */
 .acts{display:flex;gap:5px}
 .act-btn{height:26px;padding:0 9px;font-size:11px;border:.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .1s,color .1s}
 .act-btn:hover{background:var(--bg2);color:var(--text)}
@@ -97,13 +94,13 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .act-btn.use-btn:hover{background:var(--amber-bg);color:var(--amber-text);border-color:#EF9F27}
 .act-btn.in-btn:hover{background:var(--green-bg);color:var(--green-text);border-color:#97C459}
 
-/* ── Loc list (table) ─────────────────────────── */
+/* Loc list */
 .loc-list{display:flex;flex-direction:column;gap:3px}
 .loc-pill-row{display:flex;align-items:center;gap:6px;font-size:12px}
 .loc-pill-row .lname{color:var(--text2);min-width:60px}
 .loc-pill-row .lqty{font-weight:500}
 
-/* ── Loc editor ───────────────────────────────── */
+/* Loc editor */
 .loc-editor{border:.5px solid var(--border2);border-radius:var(--radius);overflow:hidden}
 .loc-row{display:grid;grid-template-columns:1fr 90px 32px;align-items:center;border-bottom:.5px solid var(--border)}
 .loc-row:last-child{border-bottom:none}
@@ -114,11 +111,11 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .add-loc-btn{width:100%;padding:7px;font-size:12px;border:none;border-top:.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;text-align:center}
 .add-loc-btn:hover{background:var(--bg3)}
 
-/* ── Summary ──────────────────────────────────── */
+/* Summary */
 .summary-line{font-size:12px;color:var(--text2);margin-bottom:10px}
 .summary-line strong{color:var(--text)}
 
-/* ── Modals ───────────────────────────────────── */
+/* Modals */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.open{display:flex}
 .modal{background:var(--bg);border-radius:var(--radius-lg);border:.5px solid var(--border);padding:24px;width:min(540px,100%);max-height:90vh;overflow-y:auto}
@@ -136,43 +133,59 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .use-type-btn.active{background:var(--text);color:var(--bg);font-weight:500}
 .use-type-btn:first-child{border-right:.5px solid var(--border2)}
 
-/* ── Lightbox ─────────────────────────────────── */
+/* Lightbox */
 .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;cursor:zoom-out}
 .lightbox.open{display:flex}
 .lightbox img{max-width:90vw;max-height:85vh;border-radius:var(--radius-lg);object-fit:contain}
 
-/* ── Lock banner ──────────────────────────────── */
+/* Lock banner */
 .lock-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:999;color:#fff;font-size:13px;padding:10px 20px;text-align:center;line-height:1.5}
 .lock-banner.show{display:block}
 .lock-banner a{color:#fff;text-decoration:underline;cursor:pointer;margin-left:12px;font-weight:500}
 
-/* ── Skeleton ─────────────────────────────────── */
+/* Skeleton */
 .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skel-cell{height:13px;border-radius:4px;display:inline-block}
 
+/* ── Mobile log cards ─────────────────────────── */
+.mob-log-list{display:none}
+.mob-log-card{
+  background:var(--bg);border:.5px solid var(--border);
+  border-radius:var(--radius-lg);padding:12px 14px;
+  margin-bottom:8px;
+}
+.mob-log-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mob-log-date{font-size:11px;color:var(--text2);white-space:nowrap}
+.mob-log-name{font-size:14px;font-weight:600;flex:1;min-width:0;word-break:break-all;margin-bottom:2px}
+.mob-log-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px}
+.mob-log-loc{font-size:11px;color:var(--text2)}
+.mob-log-note{font-size:11px;color:var(--text3);margin-top:3px}
+.mob-log-qty{font-size:13px;font-weight:600;margin-left:auto;white-space:nowrap}
+.mob-log-qty.in{color:var(--green-text)}
+.mob-log-qty.out{color:var(--amber-text)}
+.mob-log-del{height:24px;padding:0 8px;font-size:11px;border:.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text3);cursor:pointer}
+.mob-log-del:active{background:var(--red-bg);color:var(--red-text)}
+
+/* Mob log skeleton */
+.mob-log-skel{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px}
+
 /* ════════════════════════════════════════════════
-   MOBILE  (≤ 600px)
+   MOBILE (≤ 600px)
    ════════════════════════════════════════════════ */
 @media(max-width:600px){
-  /* hide desktop nav */
   .nav-tabs,.nav-brand,.nav-right{display:none!important}
   .nav{padding:0;height:0;border:none;overflow:hidden}
 
-  /* sticky search bar */
   .mob-search-bar{
-    display:flex!important;
-    position:sticky;top:0;z-index:40;
-    background:var(--bg3);
-    padding:10px 12px 8px;
-    gap:8px;
+    display:flex!important;position:sticky;top:0;z-index:40;
+    background:var(--bg3);padding:10px 12px 8px;gap:8px;
     border-bottom:.5px solid var(--border);
   }
   .mob-search-bar input{
-    flex:1;height:36px;padding:0 12px;
-    border:.5px solid var(--border2);border-radius:20px;
-    font-size:14px;background:var(--bg);color:var(--text);outline:none;
-    -webkit-appearance:none;
+    flex:1;height:36px;padding:0 12px;border:.5px solid var(--border2);
+    border-radius:20px;font-size:14px;background:var(--bg);color:var(--text);
+    outline:none;-webkit-appearance:none;
   }
   .mob-search-bar input:focus{border-color:#888}
   .mob-search-bar select{
@@ -183,40 +196,34 @@ tbody td{padding:9px 12px;vertical-align:middle}
     background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;
   }
 
-  /* bottom tab bar */
   .mob-bar{display:flex!important}
-
-  /* page padding */
   .page{padding:0 0 90px}
-
-  /* hide desktop table */
   .table-wrap{display:none!important}
   .desktop-toolbar{display:none!important}
-
-  /* stats 2 col */
   .stats-grid{grid-template-columns:1fr 1fr;gap:8px;margin:0;padding:10px 12px 6px}
   .stat-card{padding:10px 12px;border-radius:var(--radius)}
   .stat-value{font-size:17px}
-
-  /* summary */
   .summary-line{padding:0 12px 6px;margin-bottom:0}
-
-  /* mob cards container */
   .mob-cards{display:block!important;padding:6px 12px 0}
 
-  /* modal full-screen sheet */
+  /* [FIX] Show mob-log-list on mobile */
+  .mob-log-list{display:block!important;padding:6px 12px 0}
+
   .modal-overlay{padding:0;align-items:flex-end}
   .modal{width:100%;max-height:94vh;border-radius:20px 20px 0 0;padding:20px 16px 32px}
   .modal h2{font-size:15px}
 
-  /* FAB */
   .mob-fab{display:flex!important}
+
+  /* Mobile log toolbar */
+  #page-log .toolbar{padding:10px 12px 0;flex-wrap:wrap}
+  #page-log .toolbar input[type=text]{min-width:0}
 }
 @media(min-width:601px){
-  .mob-bar,.mob-cards,.mob-search-bar,.mob-fab{display:none!important}
+  .mob-bar,.mob-cards,.mob-search-bar,.mob-fab,.mob-log-list{display:none!important}
 }
 
-/* ── Bottom tab bar ───────────────────────────── */
+/* Bottom tab bar */
 .mob-bar{
   display:none;position:fixed;bottom:0;left:0;right:0;
   background:var(--bg);border-top:.5px solid var(--border);
@@ -231,74 +238,47 @@ tbody td{padding:9px 12px;vertical-align:middle}
 .mob-tab:active{opacity:.5}
 .mob-tab svg{width:22px;height:22px}
 
-/* ── FAB ──────────────────────────────────────── */
+/* FAB */
 .mob-fab{
-  display:none;
-  position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);
+  display:none;position:fixed;right:18px;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 72px);
   width:54px;height:54px;border-radius:50%;
-  background:#1a1a1a;color:#fff;
-  border:none;font-size:26px;font-family:inherit;cursor:pointer;
+  background:#1a1a1a;color:#fff;border:none;
+  font-size:26px;font-family:inherit;cursor:pointer;
   box-shadow:0 4px 16px rgba(0,0,0,.28);
   align-items:center;justify-content:center;
-  z-index:90;transition:transform .15s,box-shadow .15s;
+  z-index:90;transition:transform .15s,opacity .2s;
 }
-.mob-fab:active{transform:scale(.9);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.mob-fab:active{transform:scale(.9)}
+.mob-fab.hidden{opacity:0;pointer-events:none}
 
-/* ── Mobile search bar (desktop hidden) ───────── */
 .mob-search-bar{display:none}
-
-/* ── Mobile cards ─────────────────────────────── */
 .mob-cards{display:none}
 
+/* Inventory cards */
 .mob-card{
-  background:var(--bg);
-  border:.5px solid var(--border);
-  border-radius:var(--radius-lg);
-  padding:12px 14px;
-  margin-bottom:8px;
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  transition:background .1s;
+  background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);
+  padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;
 }
 .mob-card:active{background:var(--bg2)}
 .mob-card.zero{opacity:.4}
-
-.mob-card-photo{
-  width:52px;height:52px;flex-shrink:0;
-  border-radius:var(--radius);object-fit:cover;border:.5px solid var(--border);
-}
-.mob-card-photo-ph{
-  width:52px;height:52px;flex-shrink:0;
-  border-radius:var(--radius);background:var(--bg2);
-  border:.5px dashed var(--border2);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--text3);font-size:20px;
-}
+.mob-card-photo{width:52px;height:52px;flex-shrink:0;border-radius:var(--radius);object-fit:cover;border:.5px solid var(--border)}
+.mob-card-photo-ph{width:52px;height:52px;flex-shrink:0;border-radius:var(--radius);background:var(--bg2);border:.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:20px}
 .mob-card-body{flex:1;min-width:0}
 .mob-card-name{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:2px;word-break:break-all}
 .mob-card-meta{font-size:11px;color:var(--text2);margin-bottom:6px}
 .mob-card-locs{display:flex;flex-wrap:wrap;gap:4px}
-.mob-loc-pill{
-  display:inline-flex;align-items:center;gap:3px;
-  font-size:11px;padding:2px 8px;border-radius:999px;
-  background:var(--bg2);border:.5px solid var(--border);
-  white-space:nowrap;
-}
+.mob-loc-pill{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--bg2);border:.5px solid var(--border);white-space:nowrap}
 .mob-loc-pill .pill-name{color:var(--text2)}
 .mob-loc-pill .pill-qty{font-weight:600;color:var(--text)}
 .mob-loc-pill.low .pill-qty{color:#A32D2D}
 .mob-loc-pill.ok .pill-qty{color:#27500A}
-
 .mob-card-use{
-  flex-shrink:0;
-  width:44px;height:44px;border-radius:50%;
-  background:var(--text);color:var(--bg);
-  border:none;font-size:10px;cursor:pointer;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;
-  text-align:center;line-height:1.25;font-weight:600;
-  transition:transform .12s,opacity .12s;
-  margin-top:4px;
+  flex-shrink:0;width:44px;height:44px;border-radius:50%;
+  background:var(--text);color:var(--bg);border:none;font-size:10px;
+  cursor:pointer;font-family:inherit;display:flex;align-items:center;
+  justify-content:center;text-align:center;line-height:1.25;font-weight:600;
+  transition:transform .12s,opacity .12s;margin-top:4px;
 }
 .mob-card-use:active{transform:scale(.88);opacity:.8}
 .mob-card-use:disabled{opacity:.25;pointer-events:none}
@@ -333,13 +313,11 @@ tbody td{padding:9px 12px;vertical-align:middle}
   </button>
 </div>
 
-<!-- Mobile FAB -->
+<!-- Mobile FAB (inventory only) -->
 <button class="mob-fab" id="mobFab" onclick="openLogModal('out')" title="記錄使用">＋</button>
 
 <!-- ── 庫存總覽 ──────────────────────────────────── -->
 <div class="page active" id="page-inventory">
-
-  <!-- Mobile: sticky search bar -->
   <div class="mob-search-bar">
     <input type="text" id="mobSearchInput" placeholder="搜尋品項..." oninput="syncSearch(this.value)"/>
     <select id="mobCatFilter" onchange="syncCat(this.value)">
@@ -349,10 +327,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
     </select>
   </div>
 
-  <!-- Stats -->
   <div class="stats-grid" id="statsGrid"></div>
 
-  <!-- Desktop toolbar -->
   <div class="toolbar desktop-toolbar" style="padding:0">
     <input type="text" id="searchInput" placeholder="搜尋年份、來源或品項名稱..." oninput="renderInventory()"/>
     <select id="catFilter" onchange="renderInventory()">
@@ -380,7 +356,6 @@ tbody td{padding:9px 12px;vertical-align:middle}
 
   <div class="summary-line" id="summaryLine"></div>
 
-  <!-- Desktop table -->
   <div class="table-wrap">
     <table>
       <thead><tr>
@@ -392,9 +367,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
     </table>
   </div>
 
-  <!-- Mobile cards -->
   <div class="mob-cards" id="mobCards"></div>
-
 </div>
 
 <!-- ── 使用記錄 ──────────────────────────────────── -->
@@ -414,6 +387,8 @@ tbody td{padding:9px 12px;vertical-align:middle}
     <button class="btn btn-warn" onclick="openLogModal('out')">− 記錄使用</button>
   </div>
   <div class="summary-line" id="logSummaryLine"></div>
+
+  <!-- Desktop table -->
   <div class="table-wrap">
     <table>
       <thead><tr>
@@ -423,9 +398,12 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <tbody id="logBody"></tbody>
     </table>
   </div>
+
+  <!-- [NEW] Mobile log cards -->
+  <div class="mob-log-list" id="mobLogList"></div>
 </div>
 
-<!-- ── 品項 Modal ────────────────────────────────── -->
+<!-- ── 品項 Modal ──────────────────────────────── -->
 <div class="modal-overlay" id="itemModal" onclick="closeModalOverlay('itemModal',event)">
   <div class="modal">
     <h2 id="itemModalTitle">新增品項</h2>
@@ -457,7 +435,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   </div>
 </div>
 
-<!-- ── 記錄 Modal ────────────────────────────────── -->
+<!-- ── 記錄 Modal ──────────────────────────────── -->
 <div class="modal-overlay" id="logModal" onclick="closeModalOverlay('logModal',event)">
   <div class="modal">
     <h2 id="logModalTitle">記錄贈品使用</h2>
@@ -623,7 +601,7 @@ function loadCache() {
 }
 
 /* ════════════════════════════════════════════
-   LOAD  (Cache-First)
+   LOAD (Cache-First)
    ════════════════════════════════════════════ */
 async function loadFromSheets(force) {
   const hasCached = loadCache();
@@ -633,11 +611,12 @@ async function loadFromSheets(force) {
     if (document.getElementById('page-log').classList.contains('active')) renderLog();
     setStatus(force ? '同步中...' : '讀取快取中...', 'var(--text2)');
   } else {
+    // [FIX] Show skeleton immediately when no cache
     setStatus('載入中...', 'var(--text2)');
     renderSkeleton();
+    renderMobSkeleton();
   }
 
-  // Background fetch
   try {
     const data = await apiGet();
     if (!(data.items||[]).length) {
@@ -656,6 +635,7 @@ async function loadFromSheets(force) {
   }
 }
 
+/* ── Skeleton helpers ── */
 function renderSkeleton() {
   document.getElementById('inventoryBody').innerHTML = Array(7).fill(0).map(() => `
     <tr>
@@ -663,6 +643,21 @@ function renderSkeleton() {
       ${[40,100,80,55,60,130,30,70].map(w=>`<td><div class="skel-cell skeleton" style="width:${w}px"></div></td>`).join('')}
       <td><div class="skel-cell skeleton" style="width:88px"></div></td>
     </tr>`).join('');
+}
+
+// [NEW] Mobile skeleton for inventory cards
+function renderMobSkeleton() {
+  if (!isMob()) return;
+  const el = document.getElementById('mobCards');
+  el.innerHTML = Array(5).fill(0).map(() => `
+    <div class="mob-card" style="pointer-events:none">
+      <div class="mob-card-photo-ph skeleton" style="border:none"></div>
+      <div class="mob-card-body">
+        <div class="skel-cell skeleton" style="width:70%;height:14px;margin-bottom:8px;display:block"></div>
+        <div class="skel-cell skeleton" style="width:45%;height:11px;margin-bottom:10px;display:block"></div>
+        <div class="skel-cell skeleton" style="width:55%;height:20px;border-radius:999px"></div>
+      </div>
+    </div>`).join('');
 }
 
 /* ════════════════════════════════════════════
@@ -738,7 +733,7 @@ window.addEventListener('beforeunload', e => {
 });
 
 /* ════════════════════════════════════════════
-   NAV
+   NAV (Desktop)
    ════════════════════════════════════════════ */
 document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -766,14 +761,8 @@ function buildLocFilter() {
 /* ════════════════════════════════════════════
    MOBILE SEARCH SYNC
    ════════════════════════════════════════════ */
-function syncSearch(v) {
-  document.getElementById('searchInput').value = v;
-  renderInventory();
-}
-function syncCat(v) {
-  document.getElementById('catFilter').value = v;
-  renderInventory();
-}
+function syncSearch(v) { document.getElementById('searchInput').value = v; renderInventory(); }
+function syncCat(v)    { document.getElementById('catFilter').value = v;   renderInventory(); }
 
 /* ════════════════════════════════════════════
    INVENTORY RENDER
@@ -794,10 +783,10 @@ function getFiltered() {
   data.sort((a,b) => {
     if (sf==='name') return sd==='asc'?(a.src+a.name).localeCompare(b.src+b.name,'zh-Hant'):(b.src+b.name).localeCompare(a.src+a.name,'zh-Hant');
     let av, bv;
-    if      (sf==='year')  { av=a.year||0;         bv=b.year||0; }
-    else if (sf==='price') { av=a.price;            bv=b.price; }
-    else if (sf==='qty')   { av=totalQty(a);        bv=totalQty(b); }
-    else                   { av=a.price*totalQty(a);bv=b.price*totalQty(b); }
+    if      (sf==='year')  { av=a.year||0;          bv=b.year||0; }
+    else if (sf==='price') { av=a.price;             bv=b.price; }
+    else if (sf==='qty')   { av=totalQty(a);         bv=totalQty(b); }
+    else                   { av=a.price*totalQty(a); bv=b.price*totalQty(b); }
     return sd==='asc' ? av-bv : bv-av;
   });
   return data;
@@ -851,7 +840,7 @@ function renderInventory() {
 }
 
 /* ════════════════════════════════════════════
-   MOBILE CARDS
+   MOBILE CARDS (Inventory)
    ════════════════════════════════════════════ */
 function renderMobCards(data) {
   const el = document.getElementById('mobCards');
@@ -861,7 +850,6 @@ function renderMobCards(data) {
     const photo = i.photo
       ? `<img class="mob-card-photo" src="${i.photo}" alt="" onclick="openLightbox(${i.id})">`
       : `<div class="mob-card-photo-ph">📦</div>`;
-
     const activeLocs = (i.locations||[]).filter(l=>l.qty>0);
     const pillsHtml = activeLocs.length
       ? activeLocs.map(l => {
@@ -869,7 +857,6 @@ function renderMobCards(data) {
           return `<span class="mob-loc-pill ${cls}"><span class="pill-name">${esc(l.name)}</span><span class="pill-qty">${l.qty}</span></span>`;
         }).join('')
       : `<span class="mob-loc-pill"><span class="pill-name" style="color:var(--text3)">無庫存</span></span>`;
-
     return `<div class="mob-card${tq===0?' zero':''}">
       ${photo}
       <div class="mob-card-body">
@@ -878,6 +865,49 @@ function renderMobCards(data) {
         <div class="mob-card-locs">${pillsHtml}</div>
       </div>
       <button class="mob-card-use" onclick="quickLog(${i.id},'out')" ${tq===0?'disabled':''}>記錄<br>使用</button>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   MOBILE CARDS (Log) — [NEW]
+   ════════════════════════════════════════════ */
+function renderMobLogCards(data) {
+  const el = document.getElementById('mobLogList');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">尚無記錄</div>';
+    return;
+  }
+  el.innerHTML = data.map(l => {
+    let badgeHtml, detail = '';
+    if (l.type === 'in') {
+      badgeHtml = `<span class="badge log-badge-in">購入</span>`;
+    } else if (l.useType === 'event') {
+      badgeHtml = `<span class="badge log-badge-event">活動使用</span>`;
+      if (l.docNo)     detail += l.docNo;
+      if (l.eventName) detail += (detail ? ' · ' : '') + l.eventName;
+    } else {
+      badgeHtml = `<span class="badge log-badge-vip">公關使用</span>`;
+      if (l.manager) detail += l.manager;
+      if (l.client)  detail += (detail ? ' / ' : '') + l.client;
+    }
+    const qtySign = l.type === 'in' ? '+' : '−';
+    const qtyClass = l.type === 'in' ? 'in' : 'out';
+    const noteStr = [detail, l.note].filter(Boolean).join(' · ');
+    return `<div class="mob-log-card">
+      <div class="mob-log-header">
+        ${badgeHtml}
+        <span class="mob-log-date">${String(l.date||'').slice(0,7)}</span>
+        <span class="mob-log-qty ${qtyClass}">${qtySign}${l.qty}</span>
+      </div>
+      <div class="mob-log-name">${esc(l.name)}</div>
+      <div class="mob-log-footer">
+        ${l.locName ? `<span class="mob-log-loc">📍 ${esc(l.locName)}</span>` : ''}
+        <span class="mob-log-loc">NT$ ${fmtP(l.price)}</span>
+        <button class="mob-log-del" onclick="deleteLog(${l.id})">刪除</button>
+      </div>
+      ${noteStr ? `<div class="mob-log-note">${esc(noteStr)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -922,8 +952,8 @@ function renderLocEditor(locs) {
       <button class="del-loc" onclick="removeLocRow(${idx})">×</button>
     </div>`).join('');
 }
-function addLocRow()        { editingLocs.push({name:'',qty:0}); renderLocEditor(editingLocs); }
-function removeLocRow(idx)  { editingLocs.splice(idx,1); renderLocEditor(editingLocs); }
+function addLocRow()       { editingLocs.push({name:'',qty:0}); renderLocEditor(editingLocs); }
+function removeLocRow(idx) { editingLocs.splice(idx,1); renderLocEditor(editingLocs); }
 
 /* ════════════════════════════════════════════
    ITEM MODAL
@@ -1054,7 +1084,7 @@ function saveLog() {
 }
 
 /* ════════════════════════════════════════════
-   LOG TABLE
+   LOG TABLE + MOBILE CARDS — [UPDATED]
    ════════════════════════════════════════════ */
 function renderLog() {
   const q    = document.getElementById('logSearch').value.trim().toLowerCase();
@@ -1072,6 +1102,10 @@ function renderLog() {
   const ti = logs.filter(l=>l.type==='in').reduce((s,l)=>s+l.qty,0);
   const to = logs.filter(l=>l.type==='out').reduce((s,l)=>s+l.qty,0);
   document.getElementById('logSummaryLine').innerHTML = `共 <strong>${logs.length}</strong> 筆 · 購入 <strong>${ti}</strong> 件 · 使用 <strong>${to}</strong> 件`;
+
+  // [FIX] Mobile: render card list; Desktop: render table
+  if (isMob()) { renderMobLogCards(data); return; }
+
   const tbody = document.getElementById('logBody');
   if (!data.length) { tbody.innerHTML=`<tr class="empty-row"><td colspan="9">尚無記錄</td></tr>`; return; }
   tbody.innerHTML = data.map(l => {
@@ -1092,6 +1126,7 @@ function renderLog() {
     </tr>`;
   }).join('');
 }
+
 function deleteLog(id) {
   if (!confirm('確定要刪除此記錄？注意：刪除記錄不會還原庫存數量。')) return;
   logs = logs.filter(l=>l.id!==id); saveLogs(); renderLog();
@@ -1100,11 +1135,11 @@ function deleteLog(id) {
 /* ════════════════════════════════════════════
    MODAL UTILS
    ════════════════════════════════════════════ */
-function closeModal(mid)              { document.getElementById(mid).classList.remove('open'); }
-function closeModalOverlay(mid, e)    { if(e.target===document.getElementById(mid)) closeModal(mid); }
+function closeModal(mid)           { document.getElementById(mid).classList.remove('open'); }
+function closeModalOverlay(mid, e) { if(e.target===document.getElementById(mid)) closeModal(mid); }
 
 /* ════════════════════════════════════════════
-   MOBILE NAV
+   MOBILE NAV — [FIXED] FAB visibility
    ════════════════════════════════════════════ */
 function mobSwitch(page) {
   if (!isMob()) return;
@@ -1112,9 +1147,12 @@ function mobSwitch(page) {
   document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   const mt = document.getElementById('mobTab-'+page); if(mt) mt.classList.add('active');
-  // Show/hide FAB — only on inventory page
-  document.getElementById('mobFab').style.display = page==='inventory' ? 'flex' : 'none';
-  if (page==='log') renderLog();
+
+  // [FIX] FAB only visible on inventory page
+  const fab = document.getElementById('mobFab');
+  fab.classList.toggle('hidden', page !== 'inventory');
+
+  if (page === 'log') renderLog();
 }
 
 /* ── Boot ── */
