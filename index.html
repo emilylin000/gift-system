@@ -496,8 +496,15 @@ async function apiGet() {
   const r = await fetch(API+'?action=getAll', {redirect:'follow'});
   try { return JSON.parse(await r.text()); } catch(e) { throw new Error('回應格式錯誤'); }
 }
+// [高優先 1] 所有寫入請求帶上 token，與 GAS 端 SECRET 一致
+const API_TOKEN = 'RD-GIFT-2026';
+
 async function apiPost(body) {
-  const r = await fetch(API, {method:'POST', redirect:'follow', body:JSON.stringify(body)});
+  const r = await fetch(API, {
+    method: 'POST',
+    redirect: 'follow',
+    body: JSON.stringify({...body, token: API_TOKEN})
+  });
   try { return JSON.parse(await r.text()); } catch(e) { return {ok:true}; }
 }
 
@@ -577,10 +584,11 @@ async function syncInBackground() {
   try {
     const data = await apiGet();
     if (!(data.items||[]).length) {
-      // GAS 回傳空資料 → 首次使用，推預設資料
       items = DEFAULT_ITEMS; logs = []; nextItemId = 30; nextLogId = 1;
       await pushAll();
     } else {
+      // Modal 開著時等待使用者關閉，再套用新資料，避免中斷填寫
+      await waitForModalClose();
       applyData(data);
     }
     isDataStale = false;
@@ -592,6 +600,20 @@ async function syncInBackground() {
     setStatus(isDataStale ? '快取資料（離線）' : '連線失敗', '#A32D2D', false);
   }
   isSyncing = false;
+}
+
+/* ─── 等待所有 Modal 關閉（每 300ms 檢查一次，不干擾任何 UI）─── */
+function waitForModalClose() {
+  return new Promise(resolve => {
+    const check = () => {
+      if (!document.querySelector('.modal-overlay.open')) {
+        resolve();
+      } else {
+        setTimeout(check, 300);
+      }
+    };
+    check();
+  });
 }
 
 function renderAll() {
@@ -639,22 +661,31 @@ async function manualSave() {
   btn.style.display = 'none'; btn.textContent = '儲存'; btn.disabled = false;
 }
 
-/* [關鍵修改] 三次獨立 apiPost → 合併成一次，GAS 冷啟動 3次→1次 */
-async function pushAll() {
+// [高優先 2] 自動重試：GAS 偶發 timeout 時最多再試 2 次
+async function pushAll(retries = 2) {
   setStatus('儲存中...', '#854F0B', true);
   try {
-    await apiPost({
+    const result = await apiPost({
       action: 'saveAll',
       items: items.map(i => ({...i, locations:JSON.stringify(i.locations)})),
       logs,
       meta: {nextItemId, nextLogId}
     });
+    if (result && result.error === 'unauthorized') {
+      setStatus('驗證失敗，請確認 token 設定', '#A32D2D', false);
+      return;
+    }
     saveCache();
     buildLocFilter(); renderAll();
     setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW'), '#27500A', false);
   } catch(e) {
-    setStatus('儲存失敗：' + e.message, '#A32D2D', false);
-    console.error(e);
+    if (retries > 0) {
+      setStatus('儲存失敗，2 秒後重試...', '#854F0B', true);
+      await new Promise(r => setTimeout(r, 2000));
+      return pushAll(retries - 1);
+    }
+    setStatus('儲存失敗，請手動重試', '#A32D2D', false);
+    console.error('pushAll failed:', e);
   }
 }
 
