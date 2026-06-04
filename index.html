@@ -301,7 +301,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th style="width:56px">照片</th><th style="width:56px">年份</th><th>來源</th>
+        <th style="width:56px">照片</th><th style="width:56px">年份</th><th style="min-width:140px">來源</th>
         <th>品項名稱</th><th>類別</th><th>單價</th><th style="min-width:200px">庫存地點與數量</th>
         <th>總數量</th><th>庫存總值</th><th>操作</th>
       </tr></thead>
@@ -320,6 +320,9 @@ tbody td{padding:9px 12px;vertical-align:middle}
       <option value="in">贈品購入</option>
       <option value="event">活動使用</option>
       <option value="vip">公關使用</option>
+    </select>
+    <select id="logMonth" onchange="renderLog()">
+      <option value="">全部月份</option>
     </select>
     <select id="logSort" onchange="renderLog()">
       <option value="newest">最新優先</option>
@@ -424,7 +427,7 @@ tbody td{padding:9px 12px;vertical-align:middle}
 /* ════════════════════════════════════════════
    CONSTANTS & STATE
    ════════════════════════════════════════════ */
-const API = 'https://script.google.com/macros/s/AKfycbxE_FmZYDWFJu2W1L-C-DNdZfckFlh7aG-zg1U2r74g5w_IupmDO_eedhrnAdsnD2Q/exec';
+const API = 'https://script.google.com/macros/s/AKfycbysjxPrKfo6XXe1vmSpbmXc1iEn-jUjSuogSLBKZlTYQ-O36N-_6O8awE3eQA74bLc/exec';
 const DEFAULT_LOCS = ['2樓會議室','2樓倉庫','BPS','舊宗','其他'];
 const CACHE_KEY = 'rd_cache_v2'; // 版本升級，避免舊快取格式衝突
 
@@ -814,7 +817,7 @@ function renderInventory() {
     return '<tr' + (tq===0?' class="row-zero"':'') + '>'
       + '<td>' + photo + '</td>'
       + '<td style="color:var(--text2);font-size:14px">' + esc(i.year||'') + '</td>'
-      + '<td style="color:var(--text2);font-size:14px;max-width:130px;word-break:break-all">' + esc(i.src) + '</td>'
+      + '<td style="color:var(--text2);font-size:14px;min-width:140px;word-break:break-all">' + esc(i.src) + '</td>'
       + '<td style="max-width:180px;word-break:break-all;font-weight:500">' + esc(i.name) + (i.note?'<div style="font-size:13px;color:var(--text2);font-weight:400">'+esc(i.note)+'</div>':'') + '</td>'
       + '<td><span class="badge ' + (i.cat==='財務列管'?'badge-fin':'badge-gen') + '">' + i.cat + '</span></td>'
       + '<td style="white-space:nowrap">NT$ ' + fmtP(i.price) + '</td>'
@@ -1062,22 +1065,48 @@ function saveLog() {
 /* ════════════════════════════════════════════
    LOG TABLE
    ════════════════════════════════════════════ */
+function buildLogMonthFilter() {
+  const sel = document.getElementById('logMonth');
+  const cur = sel.value;
+  const months = [...new Set(logs.map(l => String(l.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  sel.innerHTML = '<option value="">全部月份</option>';
+  months.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+}
+
 function renderLog() {
-  const q    = document.getElementById('logSearch').value.trim().toLowerCase();
-  const type = document.getElementById('logType').value;
-  const sort = document.getElementById('logSort').value;
+  buildLogMonthFilter();
+  const q     = document.getElementById('logSearch').value.trim().toLowerCase();
+  const type  = document.getElementById('logType').value;
+  const month = document.getElementById('logMonth').value;
+  const sort  = document.getElementById('logSort').value;
   let data = [...logs].filter(l => {
     const txt = (String(l.year||'')+l.src+l.name+(l.docNo||'')+(l.eventName||'')+(l.manager||'')+(l.client||'')).toLowerCase();
-    return txt.includes(q) && (type===''||l.type===type||(type==='event'&&l.useType==='event')||(type==='vip'&&l.useType==='vip'));
+    const matchMonth = !month || String(l.date||'').slice(0,7) === month;
+    return txt.includes(q)
+      && (type===''||l.type===type||(type==='event'&&l.useType==='event')||(type==='vip'&&l.useType==='vip'))
+      && matchMonth;
   });
   data.sort((a,b) => {
     const da=String(a.date||'').slice(0,7), db=String(b.date||'').slice(0,7);
     if (da!==db) return sort==='newest' ? db.localeCompare(da) : da.localeCompare(db);
     return sort==='newest' ? b.id-a.id : a.id-b.id;
   });
+  // 摘要：全部總計 + 篩選後小計
   const ti = logs.filter(l=>l.type==='in').reduce((s,l)=>s+l.qty,0);
   const to = logs.filter(l=>l.type==='out').reduce((s,l)=>s+l.qty,0);
-  document.getElementById('logSummaryLine').innerHTML = '共 <strong>' + logs.length + '</strong> 筆 · 購入 <strong>' + ti + '</strong> 件 · 使用 <strong>' + to + '</strong> 件';
+  const fi = data.filter(l=>l.type==='in').reduce((s,l)=>s+l.qty,0);
+  const fo = data.filter(l=>l.type==='out').reduce((s,l)=>s+l.qty,0);
+  const fv = data.reduce((s,l)=>s+l.price*l.qty,0);
+  const isFiltered = month || type || q;
+  document.getElementById('logSummaryLine').innerHTML = isFiltered
+    ? '篩選 <strong>' + data.length + '</strong> 筆 · 購入 <strong>' + fi + '</strong> 件 · 使用 <strong>' + fo + '</strong> 件 · 金額 <strong>NT$ ' + fmtN(fv) + '</strong>'
+      + '<span style="color:var(--text3);margin-left:10px">（全部共 ' + logs.length + ' 筆，購入 ' + ti + ' / 使用 ' + to + ' 件）</span>'
+    : '共 <strong>' + logs.length + '</strong> 筆 · 購入 <strong>' + ti + '</strong> 件 · 使用 <strong>' + to + '</strong> 件 · 金額 <strong>NT$ ' + fmtN(data.reduce((s,l)=>s+l.price*l.qty,0)) + '</strong>';
   if (isMob()) { renderMobLogCards(data); return; }
   const tbody = document.getElementById('logBody');
   if (!data.length) { tbody.innerHTML='<tr class="empty-row"><td colspan="9">尚無記錄</td></tr>'; return; }
